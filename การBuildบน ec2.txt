@@ -1,0 +1,38 @@
+Stop → Build → Start → Check log = จบ
+เมื่อ Upload version ใหม่ 
+  1.หยุด service เก่า
+    sudo systemctl stop rust_ws_relay 
+  2.check ว่าหยุดได้จริงไหม 
+    sudo systemctl status rust_ws_relay
+  3.
+    cd /home/ubuntu/Rust_WebSocket_RelayServer
+    cargo clean
+    cargo build --release
+  4.Start service ใหม่
+     sudo systemctl start rust_ws_relay
+  5.เช็กสถานะ:
+     sudo systemctl status rust_ws_relay
+     ต้องเห็น:->Active: active (running)
+  6.ดู log เพื่อยืนยันว่าเป็น version ใหม่
+     journalctl -u rust_ws_relay -f
+     ต้องเห็น 
+      journalctl -u rust_ws_relay -f
+
+  ***** port ใน rust ไม่ตรง 
+  1.แก้ Cloudflare Tunnel (config.yml) ให้ตรง
+   sudo nano /etc/cloudflared/config.yml
+  2.แก้ code 
+  ingress:
+      - hostname: pkderiv.shop
+      service: http://localhost:3002
+      - service: http_status:404
+  3.restart Rust service ด้วย
+     sudo systemctl stop rust_ws_relay
+     sudo systemctl start rust_ws_relay
+    หรือ 
+     sudo systemctl restart rust_ws_relay
+
+
+
+
+

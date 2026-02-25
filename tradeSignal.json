@@ -1,0 +1,12 @@
+[
+{"id":"1","assetCode":"R_10","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"2","assetCode":"R_25","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"3","assetCode":"R_75","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"4","assetCode":"R_100","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"5","assetCode":"R_50","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"6","assetCode":"1HZ10V","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"7","assetCode":"1HZ25V","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"9","assetCode":"1HZ50V","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"10","assetCode":"1HZ75V","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"},
+{"id":"11","assetCode":"1HZ100V","PUTSignal":"12,18,5,6,7,22,52,2","CallSigNal":"20,36,37,74,76,79,69,80","isActive":"y"}
+]

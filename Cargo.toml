@@ -1,0 +1,28 @@
+[package]
+name = "rust-deriv-relay"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.7", features = ["ws"] }
+tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = { version = "0.21", features = ["rustls-tls-native-roots"] }
+futures-util = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tower-http = { version = "0.5", features = ["fs"] }
+chrono = "0.4"
+indicator_math = { path = "indicator_math" }  # Old lib for connect_to_deriv
+indicator_math_v2 = { package = "indicator_math", path = "RustLib/indicator_math" }  # New parallel analysis lib
+dotenv = "0.15"
+toml = "0.8"
+tower-sessions = { version = "0.12.0", features = ["signed"] }
+time = "0.3.44"
+tower = "0.5.2"
+
+# Firestore Integration
+firestore = "0.43"
+gcloud-sdk = { version = "0.25", features = ["google-firestore-v1"] }
+thiserror = "1.0"
+anyhow = "1.0"
+sysinfo = "0.38.0"

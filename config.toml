@@ -1,0 +1,16 @@
+[indicators]
+short_ema_type = "ema"
+short_ema_period = 3
+medium_ema_type = "ema"
+medium_ema_period = 8
+long_ema_type = "ema"
+long_ema_period = 21
+action_mode = "cut_type_long"
+
+[chart]
+short_ema_color = "#00BFFF"
+long_ema_color = "#FF6347"
+
+[trading]
+target_grand_profit = 1.0
+target_win_count = 5
