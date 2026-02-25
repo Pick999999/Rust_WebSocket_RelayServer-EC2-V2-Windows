@@ -1,0 +1,2831 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deriv Dashboard V2</title>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped&family=Playfair+Display:ital@1&family=Sarabun:wght@200&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body,
+        * {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e27;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Trigger Zones */
+        #sidebarTriggerLeft,
+        #sidebarTriggerRight {
+            position: fixed;
+            top: 0;
+            width: 20px;
+            height: 100vh;
+            z-index: 999;
+        }
+
+        #sidebarTriggerLeft {
+            left: 0;
+        }
+
+        #sidebarTriggerRight {
+            right: 0;
+        }
+
+        /* Left Sidebar (Trading Panel) */
+        .sidebar {
+            position: fixed;
+            left: -350px;
+            top: 0;
+            width: 350px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1f3a 0%, #0f1429 100%);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            z-index: 1000;
+            border-right: 2px solid #2a3f5f;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        /* Right Sidebar (Navigation Links) */
+        .right-sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1f3a 0%, #0f1429 100%);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            z-index: 1000;
+            border-left: 2px solid #2a3f5f;
+        }
+
+        .right-sidebar.active {
+            right: 0;
+        }
+
+        .right-sidebar-header {
+            padding: 20px;
+            background: rgba(42, 63, 95, 0.3);
+            border-bottom: 2px solid #2a3f5f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .right-sidebar-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #4fc3f7;
+        }
+
+        .close-btn-right {
+            background: transparent;
+            border: none;
+            color: #ff5252;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: all 0.3s;
+        }
+
+        .close-btn-right:hover {
+            color: #ff1744;
+            transform: rotate(90deg);
+        }
+
+        .nav-links {
+            padding: 20px;
+        }
+
+        .nav-link-item {
+            margin-bottom: 12px;
+        }
+
+        .nav-link-item a {
+            display: block;
+            padding: 15px;
+            background: rgba(42, 63, 95, 0.3);
+            border: 1px solid #2a3f5f;
+            border-radius: 8px;
+            color: #4fc3f7;
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link-item a:hover {
+            background: rgba(79, 195, 247, 0.1);
+            border-color: #4fc3f7;
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(79, 195, 247, 0.2);
+        }
+
+        .nav-link-item a.active {
+            background: rgba(79, 195, 247, 0.2);
+            border-color: #4fc3f7;
+        }
+
+        .nav-link-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .nav-link-desc {
+            font-size: 12px;
+            color: #9e9e9e;
+            line-height: 1.4;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(42, 63, 95, 0.3);
+            border-bottom: 2px solid #2a3f5f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #4fc3f7;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #ff5252;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #ff1744;
+            transform: rotate(90deg);
+        }
+
+        .sidebar-nav {
+            padding: 20px;
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border: 1px solid rgba(79, 195, 247, 0.1);
+        }
+
+        .section-title {
+            color: #4fc3f7;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #b0b0b0;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #2a3f5f;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 10px rgba(79, 195, 247, 0.2);
+        }
+
+        .form-group small {
+            font-size: 11px;
+            color: #757575;
+        }
+
+        .form-group small a {
+            color: #4fc3f7;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-mode {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            border: 1px solid #2a3f5f;
+        }
+
+        .btn-mode:hover {
+            background: rgba(79, 195, 247, 0.1);
+            border-color: #4fc3f7;
+        }
+
+        .btn-mode.active {
+            background: #4fc3f7;
+            color: #0a0e27;
+            border-color: #4fc3f7;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-right: 0;
+            transition: margin 0.3s ease;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .main-content.left-open {
+            margin-left: 350px;
+        }
+
+        .main-content.right-open {
+            margin-right: 320px;
+        }
+
+        .top-bar {
+            background: linear-gradient(90deg, #1a1f3a 0%, #2a3f5f 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #2a3f5f;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            background: rgba(79, 195, 247, 0.1);
+            border: 1px solid #4fc3f7;
+            color: #4fc3f7;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .menu-btn:hover {
+            background: #4fc3f7;
+            color: #0a0e27;
+        }
+
+        .dashboard-title {
+            margin: 0;
+            font-size: 22px;
+            color: #4fc3f7;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #757575;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #4caf50;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .balance-display {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid #4caf50;
+        }
+
+        .balance-amount {
+            color: #4caf50;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .server-time {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            color: #4fc3f7;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1a1f3a 0%, #2a3f5f 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #2a3f5f;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(79, 195, 247, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 36px;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #9e9e9e;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4fc3f7;
+        }
+
+        .stat-success .stat-value {
+            color: #4caf50;
+        }
+
+        .stat-danger .stat-value {
+            color: #f44336;
+        }
+
+        .stat-info .stat-value {
+            color: #2196f3;
+        }
+
+        .stat-warning .stat-value {
+            color: #ff9800;
+        }
+
+        .chart-section {
+            margin: 30px;
+            background: linear-gradient(135deg, #1a1f3a 0%, #2a3f5f 100%);
+            border-radius: 12px;
+            border: 1px solid #2a3f5f;
+            overflow: hidden;
+        }
+
+        .chart-header {
+            padding: 20px;
+            background: rgba(42, 63, 95, 0.3);
+            border-bottom: 2px solid #2a3f5f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-header h2 {
+            margin: 0;
+            color: #4fc3f7;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-select {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #2a3f5f;
+            border-radius: 6px;
+            color: #e0e0e0;
+            cursor: pointer;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        #chartContainer {
+            height: 500px;
+            background: #0a0e27;
+        }
+
+        .log-section {
+            margin: 30px;
+            background: linear-gradient(135deg, #1a1f3a 0%, #2a3f5f 100%);
+            border-radius: 12px;
+            border: 1px solid #2a3f5f;
+            overflow: hidden;
+        }
+
+        .log-header {
+            padding: 20px;
+            background: rgba(42, 63, 95, 0.3);
+            border-bottom: 2px solid #2a3f5f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-header h3 {
+            margin: 0;
+            color: #4fc3f7;
+        }
+
+        .log-container {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-empty {
+            text-align: center;
+            color: #757575;
+            padding: 40px;
+        }
+
+        .log-entry {
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            align-items: center;
+            border-left: 4px solid #757575;
+        }
+
+        .log-entry.win {
+            border-left-color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .log-entry.loss {
+            border-left-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1f3a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4fc3f7;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2196f3;
+        }
+
+        /* Analog Clock Styles */
+        .analog-clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .analog-clock {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 3px solid #00d4ff;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3),
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .clock-face {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+        }
+
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(145deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+
+        .clock-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px;
+        }
+
+        .hour-hand {
+            width: 4px;
+            height: 35px;
+            background: linear-gradient(to top, #00d4ff, #fff);
+            margin-left: -2px;
+            box-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
+        }
+
+        .minute-hand {
+            width: 3px;
+            height: 50px;
+            background: linear-gradient(to top, #00ff88, #fff);
+            margin-left: -1.5px;
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 55px;
+            background: linear-gradient(to top, #ff4444, #ffaa00);
+            margin-left: -1px;
+            box-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+        }
+
+        .clock-tick {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background: #666;
+            top: 8px;
+            left: 50%;
+            margin-left: -1px;
+            transform-origin: center 67px;
+        }
+
+        .clock-tick.major {
+            height: 12px;
+            width: 3px;
+            margin-left: -1.5px;
+            background: #00d4ff;
+        }
+
+        .clock-number {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            color: #888;
+        }
+
+        .digital-time {
+            font-size: 18px;
+            color: #00d4ff;
+            margin-top: 10px;
+            font-family: 'Consolas', monospace;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .clock-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Choppy Meter Section */
+        .meter-section {
+            margin: 20px 30px;
+            background: linear-gradient(135deg, #1a1f3a 0%, #2a3f5f 100%);
+            border-radius: 12px;
+            border: 1px solid #2a3f5f;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .meter-section.collapsed .meter-content {
+            display: none;
+        }
+
+        .meter-header {
+            padding: 15px 20px;
+            background: rgba(42, 63, 95, 0.3);
+            border-bottom: 2px solid #2a3f5f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .meter-header h2 {
+            margin: 0;
+            color: #4fc3f7;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .meter-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .meter-toggle {
+            background: rgba(79, 195, 247, 0.1);
+            border: 1px solid #4fc3f7;
+            color: #4fc3f7;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .meter-toggle:hover {
+            background: #4fc3f7;
+            color: #0a0e27;
+        }
+
+        .meter-toggle.active {
+            background: #4fc3f7;
+            color: #0a0e27;
+        }
+
+        .meter-status {
+            font-size: 12px;
+            color: #9e9e9e;
+        }
+
+        .meter-status.scanning {
+            color: #00d9a0;
+            animation: pulse 1.5s infinite;
+        }
+
+        .meter-content {
+            padding: 20px;
+        }
+
+        .meter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        .meter-card {
+            background: rgba(15, 15, 26, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .meter-card:hover {
+            border-color: #4fc3f7;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(79, 195, 247, 0.2);
+        }
+
+        .meter-card.selected {
+            border-color: #00d9a0;
+            background: rgba(0, 217, 160, 0.1);
+        }
+
+        .meter-card .rank-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .meter-card .rank-badge.gold {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #000;
+        }
+
+        .meter-card .rank-badge.silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #000;
+        }
+
+        .meter-card .rank-badge.bronze {
+            background: linear-gradient(135deg, #cd7f32, #b87333);
+            color: #fff;
+        }
+
+        .meter-card .asset-name {
+            font-weight: 600;
+            color: #4fc3f7;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        /* Gauge Meter SVG */
+        .gauge-container {
+            position: relative;
+            width: 100px;
+            height: 60px;
+            margin: 0 auto 10px;
+        }
+
+        .gauge-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #1a1f3a;
+            stroke-width: 8;
+        }
+
+        .gauge-value {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .gauge-value.good {
+            stroke: url(#gaugeGradientGood);
+        }
+
+        .gauge-value.neutral {
+            stroke: url(#gaugeGradientNeutral);
+        }
+
+        .gauge-value.bad {
+            stroke: url(#gaugeGradientBad);
+        }
+
+        .gauge-needle {
+            transform-origin: 50px 50px;
+            transition: transform 0.5s ease;
+        }
+
+        .gauge-text {
+            font-size: 14px;
+            font-weight: 700;
+            fill: #fff;
+            text-anchor: middle;
+        }
+
+        .meter-card .metrics-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+
+        .meter-card .metric-item {
+            text-align: center;
+        }
+
+        .meter-card .metric-item .label {
+            color: #757575;
+        }
+
+        .meter-card .metric-item .value {
+            font-weight: 600;
+        }
+
+        .meter-card .metric-item .value.good {
+            color: #00d9a0;
+        }
+
+        .meter-card .metric-item .value.neutral {
+            color: #ffc107;
+        }
+
+        .meter-card .metric-item .value.bad {
+            color: #f44336;
+        }
+
+        .candle-strip-mini {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            margin-top: 8px;
+        }
+
+        .candle-dot-mini {
+            width: 8px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .candle-dot-mini.up {
+            background: #00d9a0;
+        }
+
+        .candle-dot-mini.down {
+            background: #f44336;
+        }
+
+        .meter-loading {
+            text-align: center;
+            padding: 40px;
+            color: #757575;
+        }
+
+        .meter-loading .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #2a3f5f;
+            border-top-color: #4fc3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar Trigger Zones -->
+    <div id="sidebarTriggerLeft"></div>
+    <div id="sidebarTriggerRight"></div>
+
+    <!-- Panel A: Left Sidebar (Trading Panel) -->
+    <aside id="panelA" class="sidebar">
+        <div class="sidebar-header">
+            <h2>📊 Trading Panel</h2>
+            <button id="closeSidebar" class="close-btn">✕</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Analog Clock -->
+            <div class="analog-clock-container">
+                <div class="analog-clock" id="analogClock">
+                    <div class="clock-face">
+                        <!-- Clock Ticks -->
+                        <div class="clock-tick major" style="transform: rotate(0deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(30deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(60deg);"></div>
+                        <div class="clock-tick major" style="transform: rotate(90deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(120deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(150deg);"></div>
+                        <div class="clock-tick major" style="transform: rotate(180deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(210deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(240deg);"></div>
+                        <div class="clock-tick major" style="transform: rotate(270deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(300deg);"></div>
+                        <div class="clock-tick" style="transform: rotate(330deg);"></div>
+                        <!-- Clock Numbers -->
+                        <span class="clock-number" style="top: 10px; left: 50%; transform: translateX(-50%);">12</span>
+                        <span class="clock-number" style="top: 50%; right: 10px; transform: translateY(-50%);">3</span>
+                        <span class="clock-number"
+                            style="bottom: 10px; left: 50%; transform: translateX(-50%);">6</span>
+                        <span class="clock-number" style="top: 50%; left: 10px; transform: translateY(-50%);">9</span>
+                    </div>
+                    <div class="clock-hand hour-hand" id="hourHand"></div>
+                    <div class="clock-hand minute-hand" id="minuteHand"></div>
+                    <div class="clock-hand second-hand" id="secondHand"></div>
+                    <div class="clock-center"></div>
+                </div>
+                <div class="digital-time" id="digitalTime">00:00:00</div>
+                <div class="clock-label">Local Time</div>
+            </div>
+
+            <!-- Connection Controls -->
+            <div class="nav-section">
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button onclick="connectWS()" class="btn btn-primary"
+                        style="background: #00cc00; color: #000; font-weight: bold;">CONNECT</button>
+                    <button onclick="disconnectWS()" class="btn"
+                        style="background: #ff9900; color: #000; font-weight: bold;">DISCONNECT</button>
+                    <button onclick="disconnectAndUnsubscribe()" class="btn"
+                        style="background: #ff4444; color: white; font-weight: bold;">DISCONNECT & UNSUBSCRIBE</button>
+                </div>
+            </div>
+
+            <!-- UI Settings -->
+            <div class="nav-section">
+                <h3 class="section-title">UI Settings</h3>
+                <div class="form-group"
+                    style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px;">
+                    <input type="checkbox" id="rightSidebarToggle" style="width: auto; cursor: pointer;">
+                    <label for="rightSidebarToggle" style="margin: 0; cursor: pointer; color: #e0e0e0;">Hover Right
+                        Menu</label>
+                </div>
+            </div>
+
+            <!-- EMA Display Settings -->
+            <div class="nav-section">
+                <h3 class="section-title">EMA Display Settings</h3>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,191,255,0.1); padding: 8px; border-radius: 6px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="displayEmaShort" checked style="width: auto; cursor: pointer;">
+                            <label for="displayEmaShort" style="margin: 0; cursor: pointer; color: #00BFFF;">Short
+                                EMA</label>
+                        </div>
+                        <span id="emaShortInfo" style="font-size: 11px; color: #888;">EMA(3)</span>
+                    </div>
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,215,0,0.1); padding: 8px; border-radius: 6px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="displayEmaMedium" checked style="width: auto; cursor: pointer;">
+                            <label for="displayEmaMedium" style="margin: 0; cursor: pointer; color: #FFD700;">Medium
+                                EMA</label>
+                        </div>
+                        <span id="emaMediumInfo" style="font-size: 11px; color: #888;">EMA(5)</span>
+                    </div>
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,99,71,0.1); padding: 8px; border-radius: 6px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="displayEmaLong" checked style="width: auto; cursor: pointer;">
+                            <label for="displayEmaLong" style="margin: 0; cursor: pointer; color: #FF6347;">Long
+                                EMA</label>
+                        </div>
+                        <span id="emaLongInfo" style="font-size: 11px; color: #888;">EMA(10)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Logging -->
+            <div class="nav-section">
+                <h3 class="section-title">Data Logging</h3>
+                <div class="form-group"
+                    style="display: flex; align-items: center; gap: 10px; background: rgba(255,152,0,0.1); padding: 10px; border-radius: 6px;">
+                    <input type="checkbox" id="saveToFirestore" checked style="width: auto; cursor: pointer;">
+                    <label for="saveToFirestore" style="margin: 0; cursor: pointer; color: #ff9800;">🔥 Save to
+                        Firestore</label>
+                </div>
+            </div>
+
+            <!-- Market Selection -->
+            <div class="nav-section">
+                <h3 class="section-title">Market Selection</h3>
+                <div class="form-group">
+                    <label for="assetSelect">Asset</label>
+                    <select id="assetSelect" class="form-control" onchange="updateParams()">
+                        <optgroup label="Volatility Indices">
+                            <option value="R_10">Volatility 10 Index</option>
+                            <option value="R_25">Volatility 25 Index</option>
+                            <option value="R_50">Volatility 50 Index</option>
+                            <option value="R_75">Volatility 75 Index</option>
+                            <option value="R_100">Volatility 100 Index</option>
+                        </optgroup>
+                        <optgroup label="Forex">
+                            <option value="frxEURUSD">EUR/USD</option>
+                            <option value="frxGBPUSD">GBP/USD</option>
+                            <option value="frxUSDJPY">USD/JPY</option>
+                            <option value="frxAUDUSD">AUD/USD</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Trading Mode -->
+            <div class="nav-section">
+                <h3 class="section-title">Trading Mode</h3>
+                <div class="btn-group">
+                    <button class="btn btn-mode active" data-mode="idle">⏸️ Idle</button>
+                    <button class="btn btn-mode" data-mode="auto">🤖 Auto</button>
+                    <button class="btn btn-mode" data-mode="call">📈 Call</button>
+                    <button class="btn btn-mode" data-mode="put">📉 Put</button>
+                </div>
+            </div>
+
+            <!-- Money Management -->
+            <div class="nav-section">
+                <h3 class="section-title">Money Management</h3>
+                <div class="form-group">
+                    <label for="moneyMode">Strategy</label>
+                    <select id="moneyMode" class="form-control" onchange="updateParams()">
+                        <option value="fix">Fixed Stake</option>
+                        <option value="martingale">Martingale</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="initialStake">Initial Stake ($)</label>
+                    <input type="number" id="initialStake" class="form-control" value="1" min="0.35" step="0.01"
+                        onchange="updateParams()">
+                </div>
+                <div class="form-group">
+                    <label for="targetMoney">Target Profit ($)</label>
+                    <input type="number" id="targetMoney" class="form-control" value="10" step="1"
+                        onchange="updateParams()">
+                </div>
+                <div class="form-group">
+                    <label for="numWinTarget">Win Target (Martingale)</label>
+                    <input type="number" id="numWinTarget" class="form-control" value="5" min="1"
+                        onchange="updateParams()">
+                </div>
+            </div>
+
+            <!-- Trade Duration -->
+            <div class="nav-section">
+                <h3 class="section-title">Trade Duration</h3>
+                <div class="form-group">
+                    <label for="duration">Duration</label>
+                    <input type="number" id="duration" class="form-control" value="55" min="1"
+                        onchange="updateParams()">
+                </div>
+                <div class="form-group">
+                    <label for="durationUnit">Unit</label>
+                    <select id="durationUnit" class="form-control" onchange="updateParams()">
+                        <option value="s" selected>Seconds</option>
+                        <option value="m">Minutes</option>
+                        <option value="t">Ticks</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- API Configuration -->
+            <div class="nav-section">
+                <h3 class="section-title">API Configuration</h3>
+                <div class="form-group">
+                    <label for="appId">App ID</label>
+                    <input type="text" id="appId" class="form-control" value="1089" placeholder="Enter App ID">
+                </div>
+                <div class="form-group">
+                    <label for="apiToken">API Token</label>
+                    <input type="password" id="apiToken" class="form-control" placeholder="Enter API Token"
+                        value="lt5UMO6bNvmZQaR">
+                    <small>Get token from: <a href="https://app.deriv.com/account/api-token" target="_blank">Deriv
+                            API</a></small>
+                </div>
+            </div>
+
+
+        </nav>
+    </aside>
+
+    <!-- Right Sidebar (Navigation Links) -->
+    <aside id="rightPanel" class="right-sidebar">
+        <div class="right-sidebar-header">
+            <h2>🔗 Quick Links</h2>
+            <button id="closeRightSidebar" class="close-btn-right">✕</button>
+        </div>
+
+        <div class="nav-links">
+            <div class="nav-link-item">
+                <a class="active" href="https://thepapers.in/newLab/index.php" target="_blank">
+                    <span class="nav-link-title">📊 วิเคราะห์แยก-1</span>
+                    <span class="nav-link-desc">macd,rsi,bb กราฟแสดง Trend ได้ดี</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/webassemply/indicatormath/lab2.php" target="_blank">
+                    <span class="nav-link-title">🔬 วิเคราะห์แยก-2</span>
+                    <span class="nav-link-desc">วิเคราะห์ด้วยสูตรคณิตศาสตร์ขั้นสูง</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/countCandle.php" target="_blank">
+                    <span class="nav-link-title">🕯️ Count Candle</span>
+                    <span class="nav-link-desc">นับแท่งเทียนตามรูปแบบที่กำหนด</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://lovetoshopmall.com/Ipad2/viewgraphType2B.php" target="_blank">
+                    <span class="nav-link-title">📈 รวม Chart-1</span>
+                    <span class="nav-link-desc">แสดงกราฟรวมแบบที่ 1 (รายวัน)</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://lovetoshopmall.com/Ipad2/viewgraphType2B.php?listNo=2" target="_blank">
+                    <span class="nav-link-title">📊 รวม Chart-2</span>
+                    <span class="nav-link-desc">แสดงกราฟรวมแบบที่ 2 (รายสัปดาห์)</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/choppy/" target="_blank">
+                    <span class="nav-link-title">🌊 Choppy-รวม</span>
+                    <span class="nav-link-desc">รวมข้อมูลตลาดที่มีความผันผวนสูง</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/phpAllPredictAPI/choppyIndyV2.php" target="_blank">
+                    <span class="nav-link-title">⚡ Choppy</span>
+                    <span class="nav-link-desc">ตัวบ่งชี้ Choppy Market เวอร์ชัน 2</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/phpAllPredictAPI/pageLab.php" target="_blank">
+                    <span class="nav-link-title">🧪 LabPage</span>
+                    <span class="nav-link-desc">ห้องทดลองตัวบ่งชี้ใหม่ ๆ</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://lovetoshopmall.com/Ipad2/listAllTrade.php" target="_blank">
+                    <span class="nav-link-title">📋 TrackTrade</span>
+                    <span class="nav-link-desc">ติดตามผลการเทรดทั้งหมดแบบเรียลไทม์</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="/setup.html" target="_blank" style="border-color: #e94560;">
+                    <span class="nav-link-title">⚙️ Trading Setup</span>
+                    <span class="nav-link-desc">ปรับแต่งค่าเริ่มต้น, Martingale, Assets</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Panel B: Main Trading Area -->
+    <main id="panelB" class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button id="menuToggle" class="menu-btn">☰</button>
+                <a href="/" class="menu-btn" title="Back to Main Dashboard" style="text-decoration: none;">🏠</a>
+                <span id="homeConnectionStatus"
+                    style="font-size: 14px; font-weight: bold; margin-left: 10px; padding: 5px 10px; border-radius: 4px; border: 1px solid transparent; transition: all 0.3s;">Disconnected</span>
+                <h1 class="dashboard-title" style="margin-left: 15px;">Deriv Dashboard V2</h1>
+            </div>
+
+            <div class="top-bar-right">
+                <div class="status-indicator">
+                    <span class="status-dot" id="connectionStatus"></span>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <div class="balance-display">
+                    <span class="balance-label">Balance:</span>
+                    <span class="balance-amount" id="balanceAmount">$0.00</span>
+                </div>
+                <div class="server-time">
+                    <span id="serverTime">--:--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Trading Stats -->
+        <section class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Trades</div>
+                    <div class="stat-value" id="totalTrades">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-success">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">Wins</div>
+                    <div class="stat-value" id="totalWins">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-danger">
+                <div class="stat-icon">❌</div>
+                <div class="stat-content">
+                    <div class="stat-label">Losses</div>
+                    <div class="stat-value" id="totalLosses">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-info">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-label">Profit/Loss</div>
+                    <div class="stat-value" id="profitLoss">$0.00</div>
+                </div>
+            </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-content">
+                    <div class="stat-label">Win Streak</div>
+                    <div class="stat-value" id="winStreak">0</div>
+                </div>
+            </div>
+            <div class="stat-card" style="border-left: 3px solid #9b59b6;">
+                <div class="stat-icon">📅</div>
+                <div class="stat-content">
+                    <div class="stat-label">Today's Profit</div>
+                    <div class="stat-value" id="todayProfit" style="color: #9b59b6;">$0.00</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SVG Definitions for Gauge Gradients -->
+        <svg style="position: absolute; width: 0; height: 0;">
+            <defs>
+                <linearGradient id="gaugeGradientGood" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#00d9a0" />
+                    <stop offset="100%" style="stop-color:#00a085" />
+                </linearGradient>
+                <linearGradient id="gaugeGradientNeutral" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#ffc107" />
+                    <stop offset="100%" style="stop-color:#ff9800" />
+                </linearGradient>
+                <linearGradient id="gaugeGradientBad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#f44336" />
+                    <stop offset="100%" style="stop-color:#c62828" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Choppy Meter Section -->
+        <section class="meter-section" id="meterSection">
+            <div class="meter-header">
+                <h2>🌊 Choppy Meter <span id="meterAssetCount"
+                        style="font-size: 12px; color: #9e9e9e; font-weight: normal;">(0 assets)</span></h2>
+                <div class="meter-controls">
+                    <span class="meter-status" id="meterStatus">Ready</span>
+                    <button class="meter-toggle active" id="meterToggle" onclick="toggleMeterSection()">📊 ON</button>
+                    <button class="meter-toggle" id="meterRefresh" onclick="scanAllAssets()">🔄 Scan Now</button>
+                </div>
+            </div>
+            <div class="meter-content" id="meterContent">
+                <div class="meter-grid" id="meterGrid">
+                    <div class="meter-loading">
+                        <div class="spinner"></div>
+                        <p>Click "Scan Now" to scan all assets...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Container -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h2 id="chartTitle">Market Chart</h2>
+                <div class="chart-controls">
+                    <button class="btn btn-sm" id="fullscreenBtn">⛶ Fullscreen</button>
+                </div>
+            </div>
+            <div id="chartContainer"></div>
+            <!-- Bottom Trading Controls -->
+            <div class="chart-controls-footer"
+                style="padding: 15px; display: flex; justify-content: center; gap: 15px; background: rgba(0,0,0,0.2); border-top: 1px solid #2a3f5f;">
+                <button class="btn btn-mode active" data-mode="idle" style="min-width: 100px; padding: 12px;">⏸️
+                    Idle</button>
+                <button class="btn btn-mode" data-mode="auto" style="min-width: 100px; padding: 12px;">🤖 Auto</button>
+                <button class="btn btn-mode" data-mode="call" style="min-width: 100px; padding: 12px;">📈 Call</button>
+                <button class="btn btn-mode" data-mode="put" style="min-width: 100px; padding: 12px;">📉 Put</button>
+            </div>
+        </section>
+
+        <!-- Trade Log -->
+        <section class="log-section">
+            <div class="log-header">
+                <h3>📊 Real-Time Analysis Data</h3>
+                <div style="font-size: 12px; color: #888;">Updates every 2 seconds</div>
+            </div>
+            <div class="log-container" style="padding: 0;">
+                <table class="trade-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: rgba(42, 63, 95, 0.3); color: #4fc3f7; text-align: left;">
+                            <th style="padding: 10px;">Slope</th>
+                            <th style="padding: 10px;">Short EMA</th>
+                            <th style="padding: 10px;">Turn Type</th>
+                            <th style="padding: 10px;">EMA Diff</th>
+                            <th style="padding: 10px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analysis-data-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: #757575;">Waiting for
+                                data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </table>
+            </div>
+        </section>
+
+        <!-- Active Trades Section -->
+        <section class="log-section">
+            <div class="log-header">
+                <h3>🔥 ACTIVE TRADES (Real-time Tracking)</h3>
+            </div>
+            <div class="log-container" style="padding: 0;">
+                <table class="trade-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: rgba(42, 63, 95, 0.3); color: #ff9900; text-align: left;">
+                            <th style="padding: 10px;">#</th>
+                            <th style="padding: 10px;">Contract ID</th>
+                            <th style="padding: 10px;">Symbol</th>
+                            <th style="padding: 10px;">Type</th>
+                            <th style="padding: 10px;">Buy Price</th>
+                            <th style="padding: 10px;">Payout</th>
+                            <th style="padding: 10px;">Profit/Loss</th>
+                            <th style="padding: 10px;">Start Time</th>
+                            <th style="padding: 10px;">Expiry Time</th>
+                            <th style="padding: 10px;">Remaining</th>
+                            <th style="padding: 10px;">Min Profit</th>
+                            <th style="padding: 10px;">Max Profit</th>
+                            <th style="padding: 10px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="active-trades-body">
+                        <tr>
+                            <td colspan="13" class="log-empty">No active trades. Trades will appear here when opened.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Trade History Log -->
+        <section class="log-section">
+            <div class="log-header">
+                <h3>📋 Trade History</h3>
+                <button class="btn btn-sm" id="clearLogBtn">🗑️ Clear</button>
+            </div>
+            <div class="log-container" id="tradeLog">
+                <div class="log-empty">No trades yet. Start trading to see logs here.</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Config Manager -->
+    <script src="/config.js"></script>
+    <script>
+        // Global State & UI References
+        const els = {
+            sidebarLeft: document.getElementById('panelA'),
+            sidebarRight: document.getElementById('rightPanel'),
+            panelB: document.getElementById('panelB'),
+
+            statusDot: document.getElementById('connectionStatus'),
+            statusText: document.getElementById('statusText'),
+            homeStatus: document.getElementById('homeConnectionStatus'),
+            chartTitle: document.getElementById('chartTitle'),
+            balance: document.getElementById('balanceAmount'),
+            serverTime: document.getElementById('serverTime'),
+            stats: {
+                total: document.getElementById('totalTrades'),
+                wins: document.getElementById('totalWins'),
+                losses: document.getElementById('totalLosses'),
+                profit: document.getElementById('profitLoss'),
+                streak: document.getElementById('winStreak')
+            },
+            log: document.getElementById('tradeLog')
+        };
+
+        let ws;
+        let chart, candleSeries, shortEmaSeries, mediumEmaSeries, longEmaSeries;
+        let candleData = [];
+        let winCount = 0;
+        let lossCount = 0;
+        let totalTrades = 0;
+        let winStreak = 0;
+        let runningProfit = 0.0;
+        let todayProfitTotal = 0.0;
+        let activeTrades = new Map();
+        let emaConfig = {
+            shortPeriod: 3, shortType: 'hma',
+            mediumPeriod: 5, mediumType: 'ema',
+            longPeriod: 10, longType: 'hma'
+        };
+        let saveToFirestoreEnabled = true;
+        let cachedEmaData = { short_ema: [], medium_ema: [], long_ema: [] };
+
+        // --- Sidebar Logic ---
+        document.getElementById('sidebarTriggerLeft').addEventListener('mouseenter', () => {
+            els.sidebarLeft.classList.add('active');
+            els.panelB.classList.add('left-open');
+        });
+        document.getElementById('closeSidebar').addEventListener('click', () => {
+            els.sidebarLeft.classList.remove('active');
+            els.panelB.classList.remove('left-open');
+        });
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            els.sidebarLeft.classList.toggle('active');
+            els.panelB.classList.toggle('left-open');
+        });
+
+        // Auto-hide sidebar when mouse moves to dashboard
+        document.getElementById('panelB').addEventListener('mouseenter', () => {
+            if (els.sidebarLeft.classList.contains('active')) {
+                els.sidebarLeft.classList.remove('active');
+                els.panelB.classList.remove('left-open');
+            }
+        });
+        document.getElementById('sidebarTriggerRight').addEventListener('mouseenter', () => {
+            // Only open if toggle is checked
+            const toggle = document.getElementById('rightSidebarToggle');
+            if (toggle && toggle.checked) {
+                els.sidebarRight.classList.add('active');
+                els.panelB.classList.add('right-open');
+            }
+        });
+        document.getElementById('closeRightSidebar').addEventListener('click', () => {
+            els.sidebarRight.classList.remove('active');
+            els.panelB.classList.remove('right-open');
+        });
+
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // --- Trading Mode Logic ---
+        const modeButtons = document.querySelectorAll('.btn-mode');
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateTradeMode(btn.dataset.mode);
+            });
+        });
+
+        function updateTradeMode(mode) {
+            // UI Sync if called externally
+            modeButtons.forEach(b => {
+                if (b.dataset.mode === mode) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    command: "UPDATE_MODE",
+                    trade_mode: mode
+                }));
+            }
+        }
+
+        // --- Chart Init ---
+        function initChart() {
+            const container = document.getElementById('chartContainer');
+            chart = LightweightCharts.createChart(container, {
+                width: container.clientWidth,
+                height: 500,
+                layout: {
+                    background: { color: '#0a0e27' },
+                    textColor: '#d1d4dc',
+                },
+                grid: {
+                    vertLines: { color: '#1a1f3a' },
+                    horzLines: { color: '#1a1f3a' },
+                },
+                rightPriceScale: { borderColor: '#2a3f5f' },
+                timeScale: {
+                    borderColor: '#2a3f5f',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#4caf50',
+                downColor: '#f44336',
+                borderUpColor: '#4caf50',
+                borderDownColor: '#f44336',
+                wickUpColor: '#4caf50',
+                wickDownColor: '#f44336',
+            });
+
+            shortEmaSeries = chart.addLineSeries({ color: '#00BFFF', lineWidth: 2, title: 'Short EMA' });
+            mediumEmaSeries = chart.addLineSeries({ color: '#FFD700', lineWidth: 2, title: 'Medium EMA' });
+            longEmaSeries = chart.addLineSeries({ color: '#FF6347', lineWidth: 2, title: 'Long EMA' });
+
+            window.addEventListener('resize', () => {
+                chart.applyOptions({ width: container.clientWidth });
+            });
+        }
+
+        // --- Connection & Trading ---
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            els.log.innerHTML = '<div class="log-empty">No trades yet.</div>';
+        });
+
+        function connectWS() {
+            els.statusText.textContent = "Connecting...";
+            if (els.homeStatus) {
+                els.homeStatus.textContent = "Connecting...";
+                els.homeStatus.style.color = "#ff9800";
+                els.homeStatus.style.borderColor = "#ff9800";
+                els.homeStatus.style.background = "rgba(255, 152, 0, 0.1)";
+            }
+
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                ws = new WebSocket(protocol + '//' + window.location.host + '/ws');
+
+                ws.onopen = () => {
+                    updateStatus(true);
+                    requestData();
+                };
+                ws.onmessage = handleMessage;
+                ws.onclose = () => updateStatus(false);
+                ws.onerror = () => updateStatus(false);
+            } else {
+                requestData();
+            }
+        }
+
+        function disconnectWS() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function updateStatus(connected) {
+            if (connected) {
+                els.statusDot.classList.add('connected');
+                els.statusText.textContent = "Connected";
+                if (els.homeStatus) {
+                    els.homeStatus.textContent = "Connected";
+                    els.homeStatus.style.color = "#4caf50";
+                    els.homeStatus.style.borderColor = "#4caf50";
+                    els.homeStatus.style.background = "rgba(76, 175, 80, 0.1)";
+                }
+            } else {
+                els.statusDot.classList.remove('connected');
+                els.statusText.textContent = "Disconnected";
+                if (els.homeStatus) {
+                    els.homeStatus.textContent = "Disconnected";
+                    els.homeStatus.style.color = "#f44336";
+                    els.homeStatus.style.borderColor = "#f44336";
+                    els.homeStatus.style.background = "rgba(244, 67, 54, 0.1)";
+                }
+            }
+        }
+
+        function disconnectAndUnsubscribe() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // Update status immediately
+                els.statusText.textContent = "Stopping streams...";
+
+                // Send stop command
+                ws.send(JSON.stringify({ command: "STOP_STREAMS" }));
+                console.log("📤 Sent STOP_STREAMS command");
+
+                // Wait a bit longer for server to process, then close
+                setTimeout(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.close();
+                        console.log("🔌 WebSocket closed after STOP_STREAMS");
+                    }
+
+                    // Reset UI states
+                    els.statusDot.classList.remove('connected');
+                    els.statusText.textContent = "Disconnected (Unsubscribed)";
+
+                    // Clear chart data
+                    candleData = [];
+                    if (candleSeries) candleSeries.setData([]);
+                    if (shortEmaSeries) shortEmaSeries.setData([]);
+                    if (mediumEmaSeries) mediumEmaSeries.setData([]);
+                    if (longEmaSeries) longEmaSeries.setData([]);
+
+                    // Reset active trades
+                    activeTrades.clear();
+                    updateActiveTradesTable();
+
+                    // Show notification
+                    showDisconnectNotification();
+                }, 1000);
+            } else {
+                console.log("⚠️ WebSocket not connected");
+                els.statusText.textContent = "Not connected";
+            }
+        }
+
+        function showDisconnectNotification() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: linear-gradient(135deg, #ff9900 0%, #e67700 100%);
+                color: white;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                z-index: 9999;
+                font-weight: 500;
+            `;
+            notification.innerHTML = '🔌 Disconnected & Unsubscribed successfully!';
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function requestData() {
+            // Reset Chart Data
+            candleData = [];
+            candleSeries.setData([]);
+            shortEmaSeries.setData([]);
+            mediumEmaSeries.setData([]);
+            longEmaSeries.setData([]);
+            activeTrades.clear();
+
+            const asset = document.getElementById('assetSelect').value;
+            const tradeMode = document.querySelector('.btn-mode.active').dataset.mode;
+            const moneyMode = document.getElementById('moneyMode').value;
+            const initialStake = parseFloat(document.getElementById('initialStake').value) || 1.0;
+            const apiToken = document.getElementById('apiToken').value.trim();
+            const appId = document.getElementById('appId').value.trim();
+            const duration = parseInt(document.getElementById('duration').value);
+            const durationUnit = document.getElementById('durationUnit').value;
+            const targetProfit = parseFloat(document.getElementById('targetMoney').value);
+            const targetWin = parseInt(document.getElementById('numWinTarget').value);
+
+            const msg = JSON.stringify({
+                command: "START_DERIV",
+                asset, trade_mode: tradeMode, money_mode: moneyMode,
+                initial_stake: initialStake, api_token: apiToken, app_id: appId,
+                duration, duration_unit: durationUnit,
+                target_profit: targetProfit, target_win: targetWin
+            });
+            ws.send(msg);
+        }
+
+        function updateParams() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            const moneyMode = document.getElementById('moneyMode').value;
+            const initialStake = parseFloat(document.getElementById('initialStake').value) || 1.0;
+            const duration = parseInt(document.getElementById('duration').value);
+            const durationUnit = document.getElementById('durationUnit').value;
+            const targetProfit = parseFloat(document.getElementById('targetMoney').value);
+            const targetWin = parseInt(document.getElementById('numWinTarget').value);
+
+            ws.send(JSON.stringify({
+                command: "UPDATE_PARAMS",
+                money_mode: moneyMode,
+                initial_stake: initialStake,
+                duration, duration_unit: durationUnit,
+                target_profit: targetProfit, target_win: targetWin
+            }));
+        }
+
+        // --- Message Handling ---
+        function handleMessage(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "server_time") {
+                const date = new Date(data.server_time * 1000);
+                els.serverTime.textContent = date.toLocaleTimeString();
+            } else if (data.type === "balance") {
+                els.balance.textContent = "$" + data.balance.toFixed(2);
+            } else if (data.type === "ema_data") {
+                updateEma(data);
+            } else if (data.symbol) {
+                updateCandles(data);
+            } else if (data.type === "analysis_data" || data.msg_type === "analysis_data" || (data.ema_short_slope_direction && data.action)) {
+                // Handle Analysis Data
+                handleAnalysisData(data);
+            } else if (data.type === "trade_opened" || data.msg_type === "trade_opened") {
+                handleTradeOpened(data);
+            } else if (data.type === "trade_update" || data.msg_type === "trade_update") {
+                handleTradeUpdate(data);
+            } else if (data.type === "trade_result") {
+                handleTradeResult(data);
+            } else if (data.type === "lot_status") {
+                // handle lot status if needed for stats
+                // here we use lot status to auto-switch to idle if stopped
+                if (!data.lot_active) {
+                    updateTradeMode('idle');
+                }
+            }
+        }
+
+        function updateCandles(data) {
+            const minute = Math.floor(data.time / 60) * 60;
+            const existingIndex = candleData.findIndex(c => c.time === minute);
+
+            if (existingIndex >= 0) {
+                candleData[existingIndex].high = Math.max(candleData[existingIndex].high, data.high);
+                candleData[existingIndex].low = Math.min(candleData[existingIndex].low, data.low);
+                candleData[existingIndex].close = data.close;
+            } else {
+                candleData.push({
+                    time: minute,
+                    open: data.open, high: data.high, low: data.low, close: data.close
+                });
+            }
+
+            // Keep only last 200
+            if (candleData.length > 200) candleData = candleData.slice(-200);
+
+            candleData.sort((a, b) => a.time - b.time);
+            candleSeries.setData(candleData);
+
+            // Update Title with price
+            els.chartTitle.textContent = `${data.symbol}: ${data.close.toFixed(4)}`;
+        }
+
+        function updateEma(data) {
+            // Cache EMA data for later use
+            if (data.short_ema) cachedEmaData.short_ema = data.short_ema;
+            if (data.medium_ema) cachedEmaData.medium_ema = data.medium_ema;
+            if (data.long_ema) cachedEmaData.long_ema = data.long_ema;
+
+            // Apply visibility based on current toggle state
+            applyEmaVisibility();
+        }
+
+        function applyEmaVisibility() {
+            const showShort = document.getElementById('displayEmaShort')?.checked ?? true;
+            const showMedium = document.getElementById('displayEmaMedium')?.checked ?? true;
+            const showLong = document.getElementById('displayEmaLong')?.checked ?? true;
+
+            if (showShort && cachedEmaData.short_ema?.length > 0) {
+                shortEmaSeries.setData(cachedEmaData.short_ema.filter(p => p.value > 0).sort((a, b) => a.time - b.time));
+            } else {
+                shortEmaSeries.setData([]);
+            }
+
+            if (showMedium && cachedEmaData.medium_ema?.length > 0) {
+                mediumEmaSeries.setData(cachedEmaData.medium_ema.filter(p => p.value > 0).sort((a, b) => a.time - b.time));
+            } else {
+                mediumEmaSeries.setData([]);
+            }
+
+            if (showLong && cachedEmaData.long_ema?.length > 0) {
+                longEmaSeries.setData(cachedEmaData.long_ema.filter(p => p.value > 0).sort((a, b) => a.time - b.time));
+            } else {
+                longEmaSeries.setData([]);
+            }
+        }
+
+        function handleAnalysisData(data) {
+            const tbody = document.getElementById('analysis-data-body');
+
+            // Log for debugging
+            // console.log("Analysis Data:", data);
+
+            const slopeColor = data.ema_short_slope_direction === 'Up' ? '#00ff00' :
+                data.ema_short_slope_direction === 'Down' ? '#ff4444' : '#888';
+
+            const turnColor = data.is_ema_short_turn_type === 'TurnUp' ? '#00ff00' :
+                data.is_ema_short_turn_type === 'TurnDown' ? '#ff4444' : '#888';
+
+            const diffColor = data.ema_diff > 0 ? '#00ff00' : data.ema_diff < 0 ? '#ff4444' : '#888';
+
+            const actionColor = data.action === 'Call' ? '#2ecc71' :
+                data.action === 'Put' ? '#e74c3c' : '#f1c40f';
+
+            const emaShortVal = (data.ema_short_value !== undefined && data.ema_short_value !== null) ? data.ema_short_value.toFixed(4) : '-';
+            const emaDiffVal = (data.ema_diff !== undefined && data.ema_diff !== null) ? data.ema_diff.toFixed(4) : '-';
+
+            const row = `
+                <tr style="border-bottom: 1px solid #333;">
+                    <td style="padding: 10px; color: ${slopeColor}; font-weight: bold;">${data.ema_short_slope_direction || '-'}</td>
+                    <td style="padding: 10px;">${emaShortVal}</td>
+                    <td style="padding: 10px; color: ${turnColor};">${data.is_ema_short_turn_type || '-'}</td>
+                    <td style="padding: 10px; color: ${diffColor};">${emaDiffVal}</td>
+                    <td style="padding: 10px; color: ${actionColor}; font-weight: bold;">${data.action || '-'}</td>
+                </tr>
+            `;
+
+            // Replace content to show current state (or prepend if history desired, but request was 'update consistently')
+            // User asked for "update every 2 seconds", implying a status board. 
+            // We will just show the latest row to keep it clean, or maybe a small history. 
+            // Let's keep it defined as "Latest Status" for now based on 'index_backup' style which had single value fields.
+            // But since I made a table, I'll clear and set the new row.
+
+            tbody.innerHTML = row;
+        }
+
+        function handleTradeOpened(data) {
+            console.log("📝 Trade Opened:", data);
+            // Create initial trade object
+            activeTrades.set(data.contract_id, {
+                contract_id: data.contract_id,
+                asset: data.asset,
+                trade_type: data.trade_type,
+                buy_price: data.stake, // Initially stake is buy price
+                payout: 0,
+                profit: 0,
+                profit_percentage: 0,
+                date_start: data.time, // Unix timestamp
+                date_expiry: 0, // Will update later
+                min_profit: 0,
+                max_profit: 0
+            });
+            updateActiveTradesTable();
+        }
+
+        function handleTradeUpdate(data) {
+            // console.log("📊 Trade Update:", data);
+            let currentTrade = activeTrades.get(data.contract_id) || {};
+
+            // Update min/max profit
+            let profit = data.profit || 0;
+            let minProfit = currentTrade.min_profit !== undefined ? Math.min(currentTrade.min_profit, profit) : profit;
+            let maxProfit = currentTrade.max_profit !== undefined ? Math.max(currentTrade.max_profit, profit) : profit;
+
+            activeTrades.set(data.contract_id, {
+                ...currentTrade,
+                contract_id: data.contract_id,
+                entry_spot: data.entry_spot,
+                current_spot: data.current_spot,
+                buy_price: data.buy_price || currentTrade.buy_price,
+                payout: data.payout || 0,
+                profit: profit,
+                profit_percentage: data.profit_percentage || 0,
+                date_expiry: data.date_expiry || currentTrade.date_expiry,
+                date_start: data.date_start || currentTrade.date_start,
+                is_sold: data.is_sold,
+                is_expired: data.is_expired,
+                asset: data.asset || currentTrade.asset || '-',
+                trade_type: data.trade_type || currentTrade.trade_type || '-',
+                min_profit: minProfit,
+                max_profit: maxProfit
+            });
+
+            updateActiveTradesTable();
+        }
+
+        function updateActiveTradesTable() {
+            const tbody = document.getElementById('active-trades-body');
+
+            if (activeTrades.size === 0) {
+                tbody.innerHTML = '<tr><td colspan="13" class="log-empty">No active trades. Trades will appear here when opened.</td></tr>';
+                return;
+            }
+
+            const rows = Array.from(activeTrades.values()).map(function (trade, index) {
+                const now = Math.floor(Date.now() / 1000);
+                const timeLeft = (trade.date_expiry || 0) - now;
+                const timeLeftStr = trade.date_expiry ? formatDuration(timeLeft) : '-';
+                const timeClass = timeLeft <= 10 && timeLeft > -100 ? 'time-warning' : '';
+
+                const profitClass = trade.profit >= 0 ? 'text-success' : 'text-danger'; // Using existing utility classes if any, or inline style
+                const profitColor = trade.profit >= 0 ? '#00ff00' : '#ff4444';
+                const profitSign = trade.profit >= 0 ? '+' : '';
+
+                const typeBadge = trade.trade_type === 'CALL'
+                    ? '<span style="background: rgba(0,255,0,0.2); color: #00ff00; padding: 2px 5px; border-radius: 4px;">CALL</span>'
+                    : '<span style="background: rgba(255,68,68,0.2); color: #ff4444; padding: 2px 5px; border-radius: 4px;">PUT</span>';
+
+                // Profit details
+                const profitDisplay = `<span style="color: ${profitColor}; font-weight: bold;">${profitSign}${trade.profit.toFixed(2)}</span> <span style="font-size: 11px; color: #aaa;">[${trade.profit_percentage ? trade.profit_percentage.toFixed(2) : '0.00'}%]</span>`;
+
+                return `
+                    <tr style="border-bottom: 1px solid #333;">
+                        <td style="padding: 10px;">${index + 1}</td>
+                        <td style="padding: 10px; font-family: monospace; font-size: 12px; color: #888;">${trade.contract_id}</td>
+                        <td style="padding: 10px;"><strong>${trade.asset}</strong></td>
+                        <td style="padding: 10px;">${typeBadge}</td>
+                        <td style="padding: 10px;">$${(trade.buy_price ? Number(trade.buy_price).toFixed(2) : '0.00')}</td>
+                        <td style="padding: 10px;">$${(trade.payout ? Number(trade.payout).toFixed(2) : '0.00')}</td>
+                        <td style="padding: 10px;">${profitDisplay}</td>
+                        <td style="padding: 10px;">${formatTime(trade.date_start)}</td>
+                        <td style="padding: 10px;">${formatTime(trade.date_expiry)}</td>
+                        <td style="padding: 10px; font-family: monospace;" class="${timeClass}">${timeLeftStr}</td>
+                        <td style="padding: 10px; color: #ff4444;">${(trade.min_profit !== undefined ? trade.min_profit.toFixed(2) : '-')}</td>
+                        <td style="padding: 10px; color: #00ff00;">${(trade.max_profit !== undefined ? trade.max_profit.toFixed(2) : '-')}</td>
+                        <td style="padding: 10px;"><button onclick="sellContract('${trade.contract_id}')" class="btn btn-sm btn-danger" style="padding: 2px 8px; font-size: 11px;">SELL</button></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rows.join('');
+        }
+
+        function formatTime(unixTime) {
+            if (!unixTime) return '-';
+            const date = new Date(unixTime * 1000);
+            return date.toTimeString().split(' ')[0];
+        }
+
+        function formatDuration(seconds) {
+            if (seconds < 0) return '00:00:00';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return [h, m, s].map(v => v < 10 ? "0" + v : v).join(":");
+        }
+
+        function sellContract(contractId) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                if (confirm("Are you sure you want to SELL this contract?")) {
+                    console.log("🔻 Selling contract:", contractId);
+                    ws.send(JSON.stringify({
+                        command: "SELL",
+                        contract_id: contractId
+                    }));
+                }
+            } else {
+                alert("WebSocket not connected");
+            }
+        }
+
+        function handleTradeResult(data) {
+            // Remove from active trades map
+            if (data.contract_id) {
+                activeTrades.delete(data.contract_id);
+                updateActiveTradesTable();
+            }
+
+            totalTrades++;
+            if (data.status === 'win') {
+                winCount++;
+                winStreak++;
+                runningProfit += data.profit;
+            } else {
+                lossCount++;
+                winStreak = 0;
+                runningProfit += data.profit;
+            }
+
+            // Update today's profit
+            todayProfitTotal += data.profit;
+            updateTodayProfitDisplay();
+            saveTodayProfit();
+
+            els.stats.total.textContent = totalTrades;
+            els.stats.wins.textContent = winCount;
+            els.stats.losses.textContent = lossCount;
+            els.stats.streak.textContent = winStreak;
+
+            els.stats.profit.textContent = "$" + runningProfit.toFixed(2);
+            els.stats.profit.className = "stat-value " + (runningProfit >= 0 ? "text-success" : "text-danger");
+
+            // Log History
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${data.status}`;
+            logEntry.innerHTML = `
+                <div>${new Date().toLocaleTimeString()}</div>
+                <div>${data.status.toUpperCase()}</div>
+                <div>stake: $${data.stake}</div>
+                <div>profit: $${data.profit.toFixed(2)}</div>
+                <div>bal: $${data.balance.toFixed(2)}</div>
+             `;
+            if (els.log.querySelector('.log-empty')) els.log.innerHTML = '';
+            els.log.insertBefore(logEntry, els.log.firstChild);
+
+            // Save to Firestore if enabled
+            if (saveToFirestoreEnabled && document.getElementById('saveToFirestore')?.checked) {
+                saveTradeToFirestore(data);
+            }
+        }
+
+        function updateTodayProfitDisplay() {
+            const el = document.getElementById('todayProfit');
+            if (el) {
+                el.textContent = '$' + todayProfitTotal.toFixed(2);
+                el.style.color = todayProfitTotal >= 0 ? '#00d9a0' : '#f44336';
+            }
+        }
+
+        function saveTodayProfit() {
+            const today = new Date().toISOString().split('T')[0];
+            localStorage.setItem('dashboardV2_todayProfit', JSON.stringify({
+                date: today,
+                profit: todayProfitTotal
+            }));
+        }
+
+        function loadTodayProfit() {
+            try {
+                const saved = localStorage.getItem('dashboardV2_todayProfit');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    const today = new Date().toISOString().split('T')[0];
+                    if (data.date === today) {
+                        todayProfitTotal = data.profit || 0;
+                    } else {
+                        todayProfitTotal = 0;
+                        saveTodayProfit();
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading today profit:', e);
+            }
+            updateTodayProfitDisplay();
+        }
+
+        async function saveTradeToFirestore(data) {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const record = {
+                    contract_id: data.contract_id || '',
+                    symbol: data.asset || document.getElementById('assetSelect')?.value || '',
+                    trade_type: data.trade_type || '',
+                    buy_price: data.stake || 0,
+                    payout: data.payout || 0,
+                    profit_loss: data.profit || 0,
+                    status: data.status || '',
+                    trade_date: today,
+                    created_at: new Date().toISOString()
+                };
+
+                const response = await fetch('/api/save-trade', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(record)
+                });
+
+                if (response.ok) {
+                    console.log('🔥 Trade saved to Firestore');
+                } else {
+                    console.warn('⚠️ Failed to save trade to Firestore');
+                }
+            } catch (e) {
+                console.error('Error saving to Firestore:', e);
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            const hourAngle = (hours % 12) * 30 + minutes * 0.5;
+            const minuteAngle = minutes * 6 + seconds * 0.1;
+            const secondAngle = seconds * 6;
+
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            const secondHand = document.getElementById('secondHand');
+
+            if (hourHand) hourHand.style.transform = 'rotate(' + hourAngle + 'deg)';
+            if (minuteHand) minuteHand.style.transform = 'rotate(' + minuteAngle + 'deg)';
+            if (secondHand) secondHand.style.transform = 'rotate(' + secondAngle + 'deg)';
+
+            const digitalTime = document.getElementById('digitalTime');
+            if (digitalTime) {
+                const h = hours.toString().padStart(2, '0');
+                const m = minutes.toString().padStart(2, '0');
+                const s = seconds.toString().padStart(2, '0');
+                digitalTime.innerText = `${h}:${m}:${s}`;
+            }
+        }
+
+        // Apply config values to UI
+        function applyConfigToUI(config) {
+            console.log('📡 Applying config to UI:', config);
+
+            // Update Asset Select with assets from config
+            const assetSelect = document.getElementById('assetSelect');
+            if (assetSelect && config.assetList) {
+                // Preserve optgroups structure or create simple list
+                const volatilityAssets = config.assetList.filter(a => a.symbol.startsWith('R_') || a.symbol.includes('HZ'));
+
+                // Clear existing options in Volatility optgroup
+                const volatilityGroup = assetSelect.querySelector('optgroup[label="Volatility Indices"]');
+                if (volatilityGroup) {
+                    volatilityGroup.innerHTML = '';
+                    volatilityAssets.forEach(asset => {
+                        const option = document.createElement('option');
+                        option.value = asset.symbol;
+                        option.textContent = asset.name;
+                        if (asset.symbol === config.defaultAsset) {
+                            option.selected = true;
+                        }
+                        volatilityGroup.appendChild(option);
+                    });
+                }
+            }
+
+            // Update Initial Stake
+            const initialStakeInput = document.getElementById('initialStake');
+            if (initialStakeInput && config.startMoneyTrade) {
+                initialStakeInput.value = config.startMoneyTrade;
+            }
+
+            // Update Target Money
+            const targetMoneyInput = document.getElementById('targetMoney');
+            if (targetMoneyInput && config.targetMoney) {
+                targetMoneyInput.value = config.targetMoney;
+            }
+
+            // Update Money Mode based on tradeType
+            const moneyModeSelect = document.getElementById('moneyMode');
+            if (moneyModeSelect && config.selectedTradeType) {
+                moneyModeSelect.value = config.selectedTradeType === 'MartinGaleTrade' ? 'martingale' : 'fix';
+            }
+
+            // Load EMA config from config.json
+            if (config.emaShortType) emaConfig.shortType = config.emaShortType;
+            if (config.emaShortPeriod) emaConfig.shortPeriod = config.emaShortPeriod;
+            if (config.emaMediumType) emaConfig.mediumType = config.emaMediumType;
+            if (config.emaMediumPeriod) emaConfig.mediumPeriod = config.emaMediumPeriod;
+            if (config.emaLongType) emaConfig.longType = config.emaLongType;
+            if (config.emaLongPeriod) emaConfig.longPeriod = config.emaLongPeriod;
+            console.log('📊 EMA Config loaded:', emaConfig);
+
+            // Update EMA info display
+            const emaShortInfo = document.getElementById('emaShortInfo');
+            const emaMediumInfo = document.getElementById('emaMediumInfo');
+            const emaLongInfo = document.getElementById('emaLongInfo');
+            if (emaShortInfo) emaShortInfo.textContent = `${emaConfig.shortType.toUpperCase()}(${emaConfig.shortPeriod})`;
+            if (emaMediumInfo) emaMediumInfo.textContent = `${emaConfig.mediumType.toUpperCase()}(${emaConfig.mediumPeriod})`;
+            if (emaLongInfo) emaLongInfo.textContent = `${emaConfig.longType.toUpperCase()}(${emaConfig.longPeriod})`;
+
+            // Load display toggles
+            const displayShort = document.getElementById('displayEmaShort');
+            const displayMedium = document.getElementById('displayEmaMedium');
+            const displayLong = document.getElementById('displayEmaLong');
+            const saveFirestore = document.getElementById('saveToFirestore');
+
+            if (displayShort && config.displayEmaShort !== undefined) {
+                displayShort.checked = config.displayEmaShort;
+            }
+            if (displayMedium && config.displayEmaMedium !== undefined) {
+                displayMedium.checked = config.displayEmaMedium;
+            }
+            if (displayLong && config.displayEmaLong !== undefined) {
+                displayLong.checked = config.displayEmaLong;
+            }
+            if (saveFirestore && config.saveToFirestore !== undefined) {
+                saveFirestore.checked = config.saveToFirestore;
+                saveToFirestoreEnabled = config.saveToFirestore;
+            }
+        }
+
+        // Setup config change listener
+        function setupConfigListener() {
+            if (typeof configManager !== 'undefined') {
+                // Apply initial config
+                const currentConfig = configManager.getConfig();
+                applyConfigToUI(currentConfig);
+
+                // Listen for changes from other pages
+                configManager.onConfigChange((config) => {
+                    console.log('📡 Config updated from setup page!');
+                    applyConfigToUI(config);
+
+                    // Show notification
+                    showConfigUpdateNotification();
+                });
+            }
+        }
+        // ==================== CHOPPY METER FUNCTIONS ====================
+
+        let meterEnabled = true;
+        let meterScanInterval = null;
+        let meterData = [];
+        const METER_SCAN_INTERVAL_MS = 60000; // 1 minute
+
+        // Toggle meter section visibility
+        function toggleMeterSection() {
+            const section = document.getElementById('meterSection');
+            const toggle = document.getElementById('meterToggle');
+
+            meterEnabled = !meterEnabled;
+
+            if (meterEnabled) {
+                section.classList.remove('collapsed');
+                toggle.classList.add('active');
+                toggle.textContent = '📊 ON';
+                startMeterAutoScan();
+            } else {
+                section.classList.add('collapsed');
+                toggle.classList.remove('active');
+                toggle.textContent = '📊 OFF';
+                stopMeterAutoScan();
+            }
+        }
+
+        // Start auto scanning
+        function startMeterAutoScan() {
+            if (meterScanInterval) clearInterval(meterScanInterval);
+            meterScanInterval = setInterval(() => {
+                if (meterEnabled) {
+                    scanAllAssets();
+                }
+            }, METER_SCAN_INTERVAL_MS);
+        }
+
+        // Stop auto scanning
+        function stopMeterAutoScan() {
+            if (meterScanInterval) {
+                clearInterval(meterScanInterval);
+                meterScanInterval = null;
+            }
+        }
+
+        // Scan all assets for CI and ADX
+        async function scanAllAssets() {
+            const statusEl = document.getElementById('meterStatus');
+            const gridEl = document.getElementById('meterGrid');
+
+            statusEl.textContent = 'Scanning...';
+            statusEl.classList.add('scanning');
+
+            // Get assets from config
+            const config = typeof configManager !== 'undefined' ? configManager.getConfig() : null;
+            const assets = config?.assetList || [
+                { symbol: 'R_10', name: 'Vol 10' },
+                { symbol: 'R_25', name: 'Vol 25' },
+                { symbol: 'R_50', name: 'Vol 50' },
+                { symbol: 'R_75', name: 'Vol 75' },
+                { symbol: 'R_100', name: 'Vol 100' }
+            ];
+
+            document.getElementById('meterAssetCount').textContent = `(${assets.length} assets)`;
+
+            // Show loading
+            gridEl.innerHTML = `<div class="meter-loading"><div class="spinner"></div><p>Scanning ${assets.length} assets...</p></div>`;
+
+            const results = [];
+
+            for (const asset of assets) {
+                try {
+                    const data = await fetchAssetIndicators(asset.symbol);
+                    if (data) {
+                        results.push({
+                            symbol: asset.symbol,
+                            name: asset.name,
+                            ...data
+                        });
+                    }
+                } catch (e) {
+                    console.error(`Error scanning ${asset.symbol}:`, e);
+                }
+            }
+
+            // Sort by score (CI < 38.2 is best, ADX > 25 is best)
+            results.sort((a, b) => {
+                const scoreA = calculateScore(a.ci, a.adx);
+                const scoreB = calculateScore(b.ci, b.adx);
+                return scoreB - scoreA;
+            });
+
+            // Add rank
+            results.forEach((r, i) => {
+                r.rank = i + 1;
+                r.score = calculateScore(r.ci, r.adx);
+            });
+
+            meterData = results;
+            renderMeterGrid(results);
+
+            statusEl.textContent = `Last: ${new Date().toLocaleTimeString()}`;
+            statusEl.classList.remove('scanning');
+        }
+
+        // Calculate score (0-100, higher is better for trending)
+        function calculateScore(ci, adx) {
+            // CI: lower is better (trending) - 0-38.2 is good
+            // ADX: higher is better (trending) - > 25 is strong trend
+            const ciScore = Math.max(0, 100 - (ci * 100 / 61.8));
+            const adxScore = Math.min(100, (adx / 50) * 100);
+            return (ciScore * 0.6) + (adxScore * 0.4);
+        }
+
+        // Fetch indicators for an asset using Deriv API
+        async function fetchAssetIndicators(symbol) {
+            return new Promise((resolve) => {
+                const wsUrl = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+                const tempWs = new WebSocket(wsUrl);
+
+                let candles = [];
+                let timeout = setTimeout(() => {
+                    tempWs.close();
+                    resolve(null);
+                }, 10000);
+
+                tempWs.onopen = () => {
+                    tempWs.send(JSON.stringify({
+                        ticks_history: symbol,
+                        style: 'candles',
+                        granularity: 60,
+                        count: 50,
+                        end: 'latest'
+                    }));
+                };
+
+                tempWs.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+
+                        if (data.candles) {
+                            candles = data.candles;
+
+                            // Calculate CI and ADX
+                            const ci = calculateCI(candles, 14);
+                            const adx = calculateADX(candles, 14);
+                            const recentCandles = candles.slice(-10).map(c => c.close > c.open ? 'up' : 'down');
+                            const price = candles[candles.length - 1]?.close || 0;
+
+                            // Calculate EMA crossover info
+                            const crossoverInfo = detectEmaCrossover(candles);
+
+                            clearTimeout(timeout);
+                            tempWs.close();
+
+                            resolve({
+                                ci: ci,
+                                adx: adx,
+                                price: price,
+                                recentCandles: recentCandles,
+                                crossoverType: crossoverInfo.type,
+                                candlesSinceCross: crossoverInfo.candlesSince,
+                                isNewCrossover: crossoverInfo.isNew
+                            });
+                        }
+
+                        if (data.error) {
+                            clearTimeout(timeout);
+                            tempWs.close();
+                            resolve(null);
+                        }
+                    } catch (e) {
+                        console.error('Parse error:', e);
+                    }
+                };
+
+                tempWs.onerror = () => {
+                    clearTimeout(timeout);
+                    resolve(null);
+                };
+            });
+        }
+
+        // Detect EMA crossover (Short crosses Medium)
+        function detectEmaCrossover(candles) {
+            if (candles.length < 10) return { type: 'None', candlesSince: 0, isNew: false };
+
+            // Calculate EMAs
+            const shortPeriod = emaConfig.shortPeriod || 3;
+            const mediumPeriod = emaConfig.mediumPeriod || 5;
+
+            const shortEma = calculateEmaArray(candles, shortPeriod);
+            const mediumEma = calculateEmaArray(candles, mediumPeriod);
+
+            // Find last crossover and current state
+            let lastCrossType = 'None';
+            let candlesSinceCross = 0;
+            let isNewCrossover = false;
+
+            for (let i = candles.length - 1; i > 0; i--) {
+                const sIdx = i - (candles.length - shortEma.length);
+                const mIdx = i - (candles.length - mediumEma.length);
+
+                if (sIdx < 1 || mIdx < 1) continue;
+
+                const currShort = shortEma[sIdx];
+                const currMedium = mediumEma[mIdx];
+                const prevShort = shortEma[sIdx - 1];
+                const prevMedium = mediumEma[mIdx - 1];
+
+                // Check for crossover
+                if (prevShort <= prevMedium && currShort > currMedium) {
+                    // Upward crossover
+                    lastCrossType = 'UpTrend';
+                    candlesSinceCross = candles.length - 1 - i;
+                    isNewCrossover = (candlesSinceCross === 0);
+                    break;
+                } else if (prevShort >= prevMedium && currShort < currMedium) {
+                    // Downward crossover
+                    lastCrossType = 'DownTrend';
+                    candlesSinceCross = candles.length - 1 - i;
+                    isNewCrossover = (candlesSinceCross === 0);
+                    break;
+                }
+            }
+
+            return {
+                type: lastCrossType,
+                candlesSince: candlesSinceCross,
+                isNew: isNewCrossover
+            };
+        }
+
+        // Calculate EMA array from candles
+        function calculateEmaArray(candles, period) {
+            if (candles.length < period) return [];
+
+            const closes = candles.map(c => c.close);
+            const k = 2 / (period + 1);
+            const ema = [];
+
+            // First EMA value is SMA
+            let sum = 0;
+            for (let i = 0; i < period; i++) {
+                sum += closes[i];
+            }
+            ema.push(sum / period);
+
+            // Calculate rest of EMA
+            for (let i = period; i < closes.length; i++) {
+                ema.push(closes[i] * k + ema[ema.length - 1] * (1 - k));
+            }
+
+            return ema;
+        }
+
+        // Calculate Choppiness Index
+        function calculateCI(candles, period = 14) {
+            if (candles.length < period + 1) return 50;
+
+            const slice = candles.slice(-period - 1);
+            let atrSum = 0;
+            let highestHigh = -Infinity;
+            let lowestLow = Infinity;
+
+            for (let i = 1; i < slice.length; i++) {
+                const high = slice[i].high;
+                const low = slice[i].low;
+                const prevClose = slice[i - 1].close;
+
+                // True Range
+                const tr = Math.max(
+                    high - low,
+                    Math.abs(high - prevClose),
+                    Math.abs(low - prevClose)
+                );
+                atrSum += tr;
+
+                if (high > highestHigh) highestHigh = high;
+                if (low < lowestLow) lowestLow = low;
+            }
+
+            const range = highestHigh - lowestLow;
+            if (range === 0) return 50;
+
+            const ci = 100 * Math.log10(atrSum / range) / Math.log10(period);
+            return Math.min(100, Math.max(0, ci));
+        }
+
+        // Calculate ADX (simplified)
+        function calculateADX(candles, period = 14) {
+            if (candles.length < period + 1) return 25;
+
+            const slice = candles.slice(-period - 1);
+            let plusDMSum = 0;
+            let minusDMSum = 0;
+            let trSum = 0;
+
+            for (let i = 1; i < slice.length; i++) {
+                const high = slice[i].high;
+                const low = slice[i].low;
+                const prevHigh = slice[i - 1].high;
+                const prevLow = slice[i - 1].low;
+                const prevClose = slice[i - 1].close;
+
+                const plusDM = Math.max(0, high - prevHigh);
+                const minusDM = Math.max(0, prevLow - low);
+
+                if (plusDM > minusDM) {
+                    plusDMSum += plusDM;
+                } else {
+                    minusDMSum += minusDM;
+                }
+
+                const tr = Math.max(
+                    high - low,
+                    Math.abs(high - prevClose),
+                    Math.abs(low - prevClose)
+                );
+                trSum += tr;
+            }
+
+            if (trSum === 0) return 25;
+
+            const plusDI = (plusDMSum / trSum) * 100;
+            const minusDI = (minusDMSum / trSum) * 100;
+            const diSum = plusDI + minusDI;
+
+            if (diSum === 0) return 25;
+
+            const dx = Math.abs(plusDI - minusDI) / diSum * 100;
+            return Math.min(100, dx);
+        }
+
+        // Render meter grid
+        function renderMeterGrid(results) {
+            const gridEl = document.getElementById('meterGrid');
+            const currentAsset = document.getElementById('assetSelect')?.value || '';
+
+            if (results.length === 0) {
+                gridEl.innerHTML = '<div class="meter-loading"><p>No data available. Click "Scan Now" to scan.</p></div>';
+                return;
+            }
+
+            gridEl.innerHTML = results.map((data, index) => {
+                const ciClass = data.ci < 38.2 ? 'good' : data.ci > 61.8 ? 'bad' : 'neutral';
+                const adxClass = data.adx > 25 ? 'good' : data.adx < 20 ? 'bad' : 'neutral';
+
+                // Rank badge class
+                let rankBadgeClass = '';
+                if (data.rank === 1) rankBadgeClass = 'gold';
+                else if (data.rank === 2) rankBadgeClass = 'silver';
+                else if (data.rank === 3) rankBadgeClass = 'bronze';
+
+                // Needle rotation (CI 0-100 maps to -90 to 90 degrees)
+                const needleAngle = ((data.ci / 100) * 180) - 90;
+
+                // Candles HTML
+                const candlesHtml = (data.recentCandles || []).slice(-8).map(dir =>
+                    `<div class="candle-dot-mini ${dir}"></div>`
+                ).join('');
+
+                const isSelected = data.symbol === currentAsset;
+
+                return `
+                    <div class="meter-card ${isSelected ? 'selected' : ''}" onclick="selectMeterAsset('${data.symbol}')" style="position: relative;">
+                        ${data.rank <= 3 ? `<span class="rank-badge ${rankBadgeClass}">#${data.rank}</span>` : `<span style="position: absolute; top: 5px; right: 8px; font-size: 10px; color: #757575;">#${data.rank}</span>`}
+                        <div class="asset-name">${data.symbol}</div>
+                        
+                        <!-- Gauge Meter -->
+                        <div class="gauge-container">
+                            <svg viewBox="0 0 100 60">
+                                <!-- Background arc -->
+                                <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" />
+                                
+                                <!-- Value arc -->
+                                <path class="gauge-value ${ciClass}" 
+                                      d="M 10 50 A 40 40 0 0 1 90 50"
+                                      stroke-dasharray="${125.6 * (data.ci / 100)} 125.6" />
+                                
+                                <!-- Needle -->
+                                <g class="gauge-needle" style="transform: rotate(${needleAngle}deg)">
+                                    <line x1="50" y1="50" x2="50" y2="15" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                                    <circle cx="50" cy="50" r="4" fill="#fff"/>
+                                </g>
+                                
+                                <!-- CI Value -->
+                                <text class="gauge-text" x="50" y="58">${data.ci.toFixed(1)}</text>
+                            </svg>
+                        </div>
+                        
+                        <div class="metrics-row">
+                            <div class="metric-item">
+                                <div class="label">CI</div>
+                                <div class="value ${ciClass}">${data.ci.toFixed(1)}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="label">ADX</div>
+                                <div class="value ${adxClass}">${data.adx.toFixed(1)}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="label">Score</div>
+                                <div class="value" style="color: #4fc3f7;">${data.score.toFixed(0)}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- EMA Crossover Info -->
+                        <div class="crossover-info" style="margin-top: 6px; padding: 4px 6px; background: rgba(0,0,0,0.3); border-radius: 4px; font-size: 10px;">
+                            ${data.isNewCrossover ? '<span style="color: #ffeb3b;">⚡ NEW</span> ' : ''}
+                            <span style="color: ${data.crossoverType === 'UpTrend' ? '#00ff00' : data.crossoverType === 'DownTrend' ? '#ff4444' : '#888'};">${data.crossoverType || 'None'}</span>
+                            ${data.crossoverType !== 'None' ? `<span style="color: #aaa;"> (${data.candlesSinceCross || 0} ago)</span>` : ''}
+                        </div>
+                        
+                        <div class="candle-strip-mini">${candlesHtml}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Select asset from meter and load in chart
+        function selectMeterAsset(symbol) {
+            console.log('🎯 Selected asset from meter:', symbol);
+
+            // Update asset select
+            const assetSelect = document.getElementById('assetSelect');
+            if (assetSelect) {
+                assetSelect.value = symbol;
+            }
+
+            // Update UI highlight
+            document.querySelectorAll('.meter-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // If connected, switch asset
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // Reconnect with new asset
+                connectWS();
+            }
+        }
+
+        // ==================== END CHOPPY METER FUNCTIONS ====================
+
+        // Show notification when config is updated
+        function showConfigUpdateNotification() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: linear-gradient(135deg, #00d9a0 0%, #00a085 100%);
+                color: white;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                z-index: 9999;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.innerHTML = '✅ Config updated from Setup page!';
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        window.onload = function () {
+            // Check pktoken in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pkToken = urlParams.get('pktoken');
+            if (pkToken) {
+                console.log("PK Token found:", pkToken);
+                const apiTokenInput = document.getElementById('apiToken');
+                if (apiTokenInput) {
+                    apiTokenInput.value = pkToken;
+                }
+            }
+
+            initChart();
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // Load today's profit from localStorage
+            loadTodayProfit();
+
+            // Setup config listener after page load
+            setTimeout(setupConfigListener, 100);
+
+            // Setup EMA display toggle listeners
+            setupEmaToggleListeners();
+
+            // Start Choppy Meter auto scan after short delay
+            setTimeout(() => {
+                if (meterEnabled) {
+                    scanAllAssets();
+                    startMeterAutoScan();
+                }
+            }, 500);
+        };
+
+        // Setup EMA toggle change listeners to save to config
+        function setupEmaToggleListeners() {
+            const displayShort = document.getElementById('displayEmaShort');
+            const displayMedium = document.getElementById('displayEmaMedium');
+            const displayLong = document.getElementById('displayEmaLong');
+            const saveFirestore = document.getElementById('saveToFirestore');
+
+            const saveToConfig = () => {
+                if (typeof configManager !== 'undefined') {
+                    const config = configManager.getConfig();
+                    config.displayEmaShort = displayShort?.checked ?? true;
+                    config.displayEmaMedium = displayMedium?.checked ?? true;
+                    config.displayEmaLong = displayLong?.checked ?? true;
+                    config.saveToFirestore = saveFirestore?.checked ?? true;
+                    configManager.updateConfig(config);
+                    console.log('💾 Config saved:', config);
+                }
+            };
+
+            if (displayShort) displayShort.addEventListener('change', () => {
+                applyEmaVisibility();
+                saveToConfig();
+            });
+            if (displayMedium) displayMedium.addEventListener('change', () => {
+                applyEmaVisibility();
+                saveToConfig();
+            });
+            if (displayLong) displayLong.addEventListener('change', () => {
+                applyEmaVisibility();
+                saveToConfig();
+            });
+            if (saveFirestore) {
+                saveFirestore.addEventListener('change', () => {
+                    saveToFirestoreEnabled = saveFirestore.checked;
+                    saveToConfig();
+                });
+            }
+        }
+
+    </script>
+</body>
+
+</html>

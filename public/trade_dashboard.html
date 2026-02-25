@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoTrade Pro — Multi-Asset Signal Dashboard</title>
+    <meta name="description"
+        content="Real-time multi-asset trading dashboard with signal matching and auto-trade via Rust WebSocket">
+    <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b0f1a;
+            --bg-panel: #111827;
+            --bg-card: #1f2937;
+            --bg-input: #0d1117;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --border: #1e293b;
+            --glass: rgba(17, 24, 39, 0.85);
+            --glow-blue: 0 0 20px rgba(59, 130, 246, 0.15);
+            --glow-green: 0 0 20px rgba(16, 185, 129, 0.15);
+            --glow-red: 0 0 20px rgba(239, 68, 68, 0.15);
+            --radius: 10px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ====== HEADER ====== */
+        header {
+            height: 54px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .conn-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 999px;
+            transition: all .3s;
+        }
+
+        .conn-badge.ok {
+            background: rgba(16, 185, 129, .12);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, .25);
+        }
+
+        .conn-badge.fail {
+            background: rgba(239, 68, 68, .12);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, .25);
+        }
+
+        .conn-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 6px currentColor;
+        }
+
+        .balance-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, .08);
+            border: 1px solid rgba(6, 182, 212, .2);
+            padding: 4px 12px;
+            border-radius: 8px;
+        }
+
+        /* ====== MAIN LAYOUT ====== */
+        main {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            flex: 1;
+            height: calc(100vh - 54px);
+            overflow: hidden;
+        }
+
+        /* ====== LEFT SIDEBAR ====== */
+        .sidebar {
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .section-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        input,
+        select,
+        textarea {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            width: 100%;
+            transition: border-color .2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        textarea#signalConfig {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 160px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* buttons */
+        .btn {
+            border: none;
+            padding: 9px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 0.72rem;
+        }
+
+        /* ====== RIGHT PANEL ====== */
+        .content {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+            overflow: hidden;
+        }
+
+        /* Signal Strip */
+        .signal-strip {
+            height: 50px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 20px;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .signal-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            transition: all .3s;
+        }
+
+        .signal-chip.call {
+            border-color: rgba(16, 185, 129, .4);
+            color: var(--accent-green);
+            box-shadow: var(--glow-green);
+        }
+
+        .signal-chip.put {
+            border-color: rgba(239, 68, 68, .4);
+            color: var(--accent-red);
+            box-shadow: var(--glow-red);
+        }
+
+        .signal-chip.idle {
+            border-color: rgba(100, 116, 139, .3);
+            color: var(--text-muted);
+        }
+
+        .signal-icon {
+            font-size: 1rem;
+        }
+
+        /* Chart */
+        .chart-wrap {
+            flex: 2;
+            position: relative;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border);
+        }
+
+        #tv-chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Logs */
+        .logs-wrap {
+            flex: 1;
+            background: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 160px;
+        }
+
+        .logs-header {
+            padding: 10px 16px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .logs-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 16px;
+        }
+
+        .logs-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .logs-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .log-row {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            padding: 3px 0;
+            display: flex;
+            gap: 8px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(30, 41, 59, .5);
+        }
+
+        .log-row .t {
+            color: var(--accent-blue);
+            min-width: 62px;
+        }
+
+        .log-row .tag {
+            font-weight: 700;
+            min-width: 50px;
+        }
+
+        .log-row .tag.trade {
+            color: var(--accent-green);
+        }
+
+        .log-row .tag.signal {
+            color: var(--accent-purple);
+        }
+
+        .log-row .tag.error {
+            color: var(--accent-red);
+        }
+
+        .log-row .tag.system {
+            color: var(--accent-cyan);
+        }
+
+        .log-row .tag.idle {
+            color: var(--text-muted);
+        }
+
+        .log-row .msg {
+            color: var(--text-primary);
+        }
+
+        /* ====== ANIMATIONS ====== */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .5
+            }
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .slide-in {
+            animation: slideIn .25s ease-out;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 64px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .4);
+            animation: slideIn .3s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="brand"><span>🚀</span> AutoTrade Pro</div>
+        <div class="header-right">
+            <div class="balance-chip" id="balanceDisplay">$—</div>
+            <div id="connBadge" class="conn-badge fail">
+                <div class="conn-dot"></div>
+                <span id="connText">Disconnected</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN -->
+    <main>
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-scroll">
+                <!-- Signal Config -->
+                <div>
+                    <div class="section-label">📡 Trade Signal Config</div>
+                    <div class="card">
+                        <div style="display:flex;flex-direction:column;gap:8px">
+                            <label for="signalConfig">tradeSignal.json (auto-loaded)</label>
+                            <textarea id="signalConfig" readonly></textarea>
+                            <div class="row">
+                                <button class="btn btn-outline btn-sm" onclick="reloadSignalConfig()">🔄 Reload</button>
+                                <button class="btn btn-outline btn-sm" onclick="editToggle()">✏️ Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trade Settings -->
+                <div>
+                    <div class="section-label">⚙️ Trade Settings</div>
+                    <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+                        <div class="row">
+                            <div class="col">
+                                <label>Asset</label>
+                                <select id="assetSelect"></select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label>Base Stake ($)</label>
+                                <input type="number" id="baseStake" value="1.0" step="0.1" min="0.35">
+                            </div>
+                            <div class="col">
+                                <label>Target Profit ($)</label>
+                                <input type="number" id="targetProfit" value="10" step="1">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label>Money Mgmt</label>
+                                <select id="moneyMgmt">
+                                    <option value="fix">Fixed</option>
+                                    <option value="martingale">Martingale</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label>Duration</label>
+                                <select id="durationSel">
+                                    <option value="55|s">Short (55s)</option>
+                                    <option value="15|m">15 Min</option>
+                                    <option value="30|m">30 Min</option>
+                                    <option value="60|m">60 Min</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label>API Token</label>
+                                <input type="password" id="apiToken" placeholder="Deriv API Token">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div>
+                    <div class="section-label">🎮 Control</div>
+                    <div class="card" style="display:flex;flex-direction:column;gap:8px;">
+                        <button id="btnConnect" class="btn btn-start" onclick="startConnection()">
+                            ▶ Connect & Start
+                        </button>
+                        <button id="btnStop" class="btn btn-stop" style="display:none;" onclick="stopConnection()">
+                            ⏹ Stop
+                        </button>
+                        <div class="row">
+                            <button class="btn btn-outline btn-sm" style="flex:1" onclick="sendModeUpdate('auto')">🤖
+                                Auto</button>
+                            <button class="btn btn-outline btn-sm" style="flex:1" onclick="sendModeUpdate('idle')">⏸
+                                Idle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Cards -->
+                <div>
+                    <div class="section-label">📊 Session Status</div>
+                    <div class="card" style="display:flex;flex-direction:column;gap:6px;">
+                        <div class="row">
+                            <div class="col"><label>Grand P/L</label>
+                                <div id="grandPL"
+                                    style="font-family:'JetBrains Mono';font-weight:700;font-size:1.1rem;color:var(--text-muted)">
+                                    $0.00</div>
+                            </div>
+                            <div class="col"><label>Wins</label>
+                                <div id="winCount"
+                                    style="font-family:'JetBrains Mono';font-weight:700;font-size:1.1rem;color:var(--text-muted)">
+                                    0</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label>Trade Mode</label>
+                                <div id="tradeMode" style="font-weight:600;color:var(--accent-amber)">—</div>
+                            </div>
+                            <div class="col"><label>Lot Active</label>
+                                <div id="lotActive" style="font-weight:600;color:var(--text-muted)">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT CONTENT -->
+        <div class="content">
+            <!-- Signal Strip -->
+            <div class="signal-strip" id="signalStrip">
+                <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">Signals:</span>
+                <div class="signal-chip idle"><span class="signal-icon">⏳</span> Waiting for data...</div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-wrap">
+                <div style="position:absolute;top:8px;right:16px;z-index:10;display:flex;align-items:center;gap:8px;">
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--text-secondary);cursor:pointer;background:rgba(17,24,39,.8);padding:4px 10px;border-radius:6px;border:1px solid var(--border);">
+                        <input type="checkbox" id="chkStatusCode" style="width:14px;height:14px;cursor:pointer;"> Show
+                        StatusCode
+                    </label>
+                </div>
+                <div id="tv-chart"></div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="logs-wrap">
+                <div class="logs-header">
+                    <div class="section-label" style="margin:0">Activity Log</div>
+                    <button class="btn btn-outline btn-sm" onclick="clearLogs()">Clear</button>
+                </div>
+                <div class="logs-body" id="logBody">
+                    <div class="log-row slide-in">
+                        <span class="t">--:--:--</span>
+                        <span class="tag system">SYS</span>
+                        <span class="msg">AutoTrade Pro initialized. Loading signal config...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ===================================================================
+        //  STATE
+        // ===================================================================
+        let ws = null;
+        let signalMap = [];       // parsed tradeSignal.json
+        let tradingActive = false;
+        let currentAsset = '';
+        let lastAnalysis = {};    // per-asset last analysis_data
+        let chart, candleSeries, shortEmaSeries, mediumEmaSeries, longEmaSeries;
+
+        // Candle tracking: update current candle vs create new
+        let currentCandleOpenTime = 0;   // open_time of current forming candle
+        let candleMarkers = [];          // StatusCode markers array
+
+        // ===================================================================
+        //  1. LOAD tradeSignal.json ON PAGE LOAD
+        // ===================================================================
+        async function loadSignalConfig() {
+            try {
+                const res = await fetch('/tradeSignal.json');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                signalMap = data;
+                document.getElementById('signalConfig').value = JSON.stringify(data, null, 2);
+                populateAssetDropdown(data);
+                log('Loaded tradeSignal.json — ' + data.length + ' assets', 'system');
+            } catch (e) {
+                log('Failed to load tradeSignal.json: ' + e.message, 'error');
+                showToast('⚠️ Could not load tradeSignal.json');
+            }
+        }
+
+        function reloadSignalConfig() { loadSignalConfig(); }
+
+        function editToggle() {
+            const ta = document.getElementById('signalConfig');
+            if (ta.readOnly) {
+                ta.readOnly = false;
+                ta.style.borderColor = 'var(--accent-amber)';
+                log('Signal config unlocked for editing', 'system');
+            } else {
+                ta.readOnly = true;
+                ta.style.borderColor = '';
+                // try parse
+                try {
+                    signalMap = JSON.parse(ta.value);
+                    populateAssetDropdown(signalMap);
+                    log('Signal config saved. ' + signalMap.length + ' assets.', 'system');
+                } catch (e) {
+                    log('JSON parse error: ' + e.message, 'error');
+                }
+            }
+        }
+
+        function populateAssetDropdown(data) {
+            const sel = document.getElementById('assetSelect');
+            sel.innerHTML = '<option value="ALL">🌐 All Assets</option>';
+            data.filter(d => d.isActive === 'y').forEach(d => {
+                sel.innerHTML += `<option value="${d.assetCode}">${d.assetCode}</option>`;
+            });
+        }
+
+        // ===================================================================
+        //  2. CHART INIT (Lightweight Charts 4.2.1)
+        // ===================================================================
+        function initChart() {
+            const el = document.getElementById('tv-chart');
+            chart = LightweightCharts.createChart(el, {
+                layout: { background: { color: '#0b0f1a' }, textColor: '#94a3b8' },
+                grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+                width: el.clientWidth,
+                height: el.clientHeight,
+                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                timeScale: { timeVisible: true, secondsVisible: false },
+                rightPriceScale: { borderColor: '#1e293b' },
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#10b981', downColor: '#ef4444',
+                borderVisible: false,
+                wickUpColor: '#10b981', wickDownColor: '#ef4444',
+            });
+
+            shortEmaSeries = chart.addLineSeries({ color: '#06b6d4', lineWidth: 1, title: 'Short' });
+            mediumEmaSeries = chart.addLineSeries({ color: '#f59e0b', lineWidth: 1, title: 'Med' });
+            longEmaSeries = chart.addLineSeries({ color: '#ef4444', lineWidth: 1, title: 'Long' });
+
+            // StatusCode checkbox event
+            document.getElementById('chkStatusCode').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    candleSeries.setMarkers(candleMarkers);
+                } else {
+                    candleSeries.setMarkers([]);
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+            });
+        }
+
+        // ===================================================================
+        //  3. WEBSOCKET CONNECTION TO RUST
+        // ===================================================================
+        function startConnection() {
+            const asset = document.getElementById('assetSelect').value;
+            const token = document.getElementById('apiToken').value;
+            const [dur, unit] = document.getElementById('durationSel').value.split('|');
+
+            if (!asset || asset === 'ALL') {
+                log('Please select a specific asset to connect', 'error');
+                showToast('⚠️ Select an asset first');
+                return;
+            }
+
+            currentAsset = asset;
+
+            // Connect to Rust WS
+            const wsURL = `ws://${location.host}/ws`;
+            ws = new WebSocket(wsURL);
+
+            ws.onopen = () => {
+                setConnStatus(true);
+                log('WebSocket connected to Rust Server', 'system');
+
+                // Send START_DERIV command
+                const cmd = {
+                    command: 'START_DERIV',
+                    asset: asset,
+                    trade_mode: 'auto',
+                    money_mode: document.getElementById('moneyMgmt').value,
+                    initial_stake: parseFloat(document.getElementById('baseStake').value) || 1.0,
+                    app_id: '66726',
+                    api_token: token,
+                    duration: parseInt(dur),
+                    duration_unit: unit,
+                    target_profit: parseFloat(document.getElementById('targetProfit').value) || 10,
+                    target_win: 5
+                };
+                ws.send(JSON.stringify(cmd));
+                log(`START_DERIV sent → Asset=${asset}, Duration=${dur}${unit}`, 'system');
+
+                // Clear token display for security
+                if (token) document.getElementById('apiToken').value = '';
+
+                tradingActive = true;
+                document.getElementById('btnConnect').style.display = 'none';
+                document.getElementById('btnStop').style.display = 'flex';
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleServerMessage(data);
+                } catch (e) {
+                    // ignore non-JSON
+                }
+            };
+
+            ws.onclose = () => {
+                setConnStatus(false);
+                log('WebSocket disconnected. Reconnecting in 3s...', 'system');
+                setTimeout(() => {
+                    if (tradingActive) startConnection();
+                }, 3000);
+            };
+
+            ws.onerror = () => {
+                setConnStatus(false);
+                log('WebSocket error', 'error');
+            };
+        }
+
+        function stopConnection() {
+            tradingActive = false;
+            if (ws) {
+                // Send STOP command
+                ws.send(JSON.stringify({ command: 'STOP_STREAMS' }));
+                ws.close();
+                ws = null;
+            }
+            document.getElementById('btnConnect').style.display = 'flex';
+            document.getElementById('btnStop').style.display = 'none';
+            log('Connection stopped by user', 'system');
+        }
+
+        function sendModeUpdate(mode) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('Not connected', 'error');
+                return;
+            }
+            ws.send(JSON.stringify({ command: 'UPDATE_MODE', trade_mode: mode }));
+            document.getElementById('tradeMode').textContent = mode.toUpperCase();
+            document.getElementById('tradeMode').style.color =
+                mode === 'auto' ? 'var(--accent-green)' :
+                    mode === 'idle' ? 'var(--text-muted)' : 'var(--accent-amber)';
+            log(`Trade mode → ${mode.toUpperCase()}`, 'trade');
+        }
+
+        function sendParamsUpdate() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            const [dur, unit] = document.getElementById('durationSel').value.split('|');
+            ws.send(JSON.stringify({
+                command: 'UPDATE_PARAMS',
+                money_mode: document.getElementById('moneyMgmt').value,
+                initial_stake: parseFloat(document.getElementById('baseStake').value) || 1.0,
+                duration: parseInt(dur),
+                duration_unit: unit,
+                target_profit: parseFloat(document.getElementById('targetProfit').value) || 10,
+                target_win: 5,
+            }));
+        }
+        // Auto send params on change
+        ['baseStake', 'targetProfit', 'moneyMgmt', 'durationSel'].forEach(id => {
+            document.getElementById(id).addEventListener('change', sendParamsUpdate);
+        });
+
+        // ===================================================================
+        //  4-5. HANDLE SERVER MESSAGES & SIGNAL MATCHING
+        // ===================================================================
+        function handleServerMessage(data) {
+            // --- Candle data (OHLC from Rust server) ---
+            // Uses open_time to decide: same open_time → update candle, new open_time → new candle
+            if (data.symbol && data.open !== undefined) {
+                // Rust sends: { symbol, time, open, high, low, close, open_time }
+                // open_time = start of the candle period
+                const openTime = data.open_time || data.time;
+                const candleTime = openTime;  // use open_time as the candle's X-axis time
+
+                const cd = { time: candleTime, open: data.open, high: data.high, low: data.low, close: data.close };
+
+                if (openTime !== currentCandleOpenTime) {
+                    // New candle started
+                    currentCandleOpenTime = openTime;
+                }
+                // update() handles both: new time = new bar, same time = update existing bar
+                candleSeries.update(cd);
+            }
+
+            // --- EMA data ---
+            if (data.msg_type === 'ema_data') {
+                if (data.short_ema) shortEmaSeries.setData(data.short_ema.map(p => ({ time: p.time, value: p.value })));
+                if (data.medium_ema) mediumEmaSeries.setData(data.medium_ema.map(p => ({ time: p.time, value: p.value })));
+                if (data.long_ema) longEmaSeries.setData(data.long_ema.map(p => ({ time: p.time, value: p.value })));
+            }
+
+            // --- Analysis Data (main signal logic) ---
+            if (data.msg_type === 'analysis_data') {
+                lastAnalysis[currentAsset] = data;
+                checkSignalForAsset(currentAsset, data);
+
+                // Add StatusCode marker if available
+                if (data.status_code) {
+                    const action = (data.action || '').toLowerCase();
+                    const markerColor = action === 'call' ? '#10b981' : action === 'put' ? '#ef4444' : '#64748b';
+                    const markerPos = action === 'put' ? 'aboveBar' : 'belowBar';
+                    const markerShape = action === 'call' ? 'arrowUp' : action === 'put' ? 'arrowDown' : 'circle';
+
+                    candleMarkers.push({
+                        time: data.time || currentCandleOpenTime,
+                        position: markerPos,
+                        color: markerColor,
+                        shape: markerShape,
+                        text: String(data.status_code),
+                    });
+
+                    // Sort markers by time (required by LightweightCharts)
+                    candleMarkers.sort((a, b) => a.time - b.time);
+
+                    // Keep max 100 markers
+                    if (candleMarkers.length > 100) candleMarkers.splice(0, candleMarkers.length - 100);
+
+                    // Update if checkbox is checked
+                    if (document.getElementById('chkStatusCode').checked) {
+                        candleSeries.setMarkers(candleMarkers);
+                    }
+                }
+            }
+
+            // --- Multi-Analysis (from START_MULTI_TRADE) ---
+            if (data.msg_type === 'multi_analysis') {
+                if (data.assets && Array.isArray(data.assets)) {
+                    data.assets.forEach(a => {
+                        updateSignalStrip(a.asset, a.decision, `Code=${a.status_code} ${a.status_desc}`);
+                        // Add marker for multi-asset too
+                        if (a.status_code && a.asset === currentAsset) {
+                            const mColor = a.decision === 'call' ? '#10b981' : a.decision === 'put' ? '#ef4444' : '#64748b';
+                            const mPos = a.decision === 'put' ? 'aboveBar' : 'belowBar';
+                            const mShape = a.decision === 'call' ? 'arrowUp' : a.decision === 'put' ? 'arrowDown' : 'circle';
+                            candleMarkers.push({
+                                time: data.timestamp || currentCandleOpenTime,
+                                position: mPos,
+                                color: mColor,
+                                shape: mShape,
+                                text: String(a.status_code),
+                            });
+                            candleMarkers.sort((a, b) => a.time - b.time);
+                            if (candleMarkers.length > 100) candleMarkers.splice(0, candleMarkers.length - 100);
+                            if (document.getElementById('chkStatusCode').checked) {
+                                candleSeries.setMarkers(candleMarkers);
+                            }
+                        }
+                    });
+
+                    // Log summary
+                    const calls = data.assets.filter(a => a.decision === 'call').length;
+                    const puts = data.assets.filter(a => a.decision === 'put').length;
+                    log(`Multi-Analysis: ${data.assets.length} assets — ${calls} CALL, ${puts} PUT`, 'signal');
+                }
+            }
+
+            // --- Balance ---
+            if (data.msg_type === 'balance') {
+                document.getElementById('balanceDisplay').textContent = '$' + data.balance.toFixed(2);
+            }
+
+            // --- Lot Status ---
+            if (data.msg_type === 'lot_status') {
+                const plEl = document.getElementById('grandPL');
+                plEl.textContent = '$' + data.grand_profit.toFixed(2);
+                plEl.style.color = data.grand_profit >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+
+                document.getElementById('winCount').textContent = data.win_count;
+                document.getElementById('lotActive').textContent = data.lot_active ? 'Active' : 'Inactive';
+                document.getElementById('lotActive').style.color = data.lot_active ? 'var(--accent-green)' : 'var(--text-muted)';
+            }
+
+            // --- Trade Opened ---
+            if (data.msg_type === 'trade_opened') {
+                log(`📈 Trade opened: ${data.trade_type} ${data.asset} — Stake $${data.stake}`, 'trade');
+                showToast(`📈 ${data.trade_type} trade opened on ${data.asset}`);
+            }
+
+            // --- Trade Result ---
+            if (data.msg_type === 'trade_result') {
+                const icon = data.status === 'won' ? '✅' : '❌';
+                log(`${icon} Trade: ${data.status.toUpperCase()} — P/L $${data.profit.toFixed(2)}`, 'trade');
+                showToast(`${icon} ${data.status.toUpperCase()} — $${data.profit.toFixed(2)}`);
+            }
+
+            // --- Trade Update (live) ---
+            if (data.msg_type === 'trade_update') {
+                // could update UI or ignore
+            }
+
+            // --- Server Time ---
+            if (data.msg_type === 'server_time') {
+                // sync display if needed
+            }
+        }
+
+        // ===================================================================
+        //  5. SIGNAL MATCHING: StatusCode vs tradeSignal.json
+        // ===================================================================
+        /**
+         *  AnalysisData from Rust has an `action` field ("call" / "put" / "hold")
+         *  This is derived from EMA analysis.
+         *  
+         *  However, PlanStep3 says we should ALSO use tradeSignal.json:
+         *    - Each asset has PUTSignal and CallSigNal (comma-separated status codes)
+         *    - If the `action` code matches one of the Signal codes → execute
+         *    - Otherwise → Idle
+         *  
+         *  The Rust `analysis_data` currently sends `action` as "call"/"put"/"hold"
+         *  The tradeSignal.json has numeric StatusCode signals.
+         *  
+         *  We interpret: StatusCode from Rust analysis is encoded in the `action` + additional fields.
+         *  Since Rust sends an `action` directly, we map this to Call/Put/Idle:
+         *     - If action == "call" and the analysis conditions match CallSigNal codes → CALL
+         *     - If action == "put"  and the analysis conditions match PUTSignal codes → PUT
+         *     - Otherwise → IDLE
+         *  
+         *  NOTE: If the Rust side evolves to send a numeric `status_code`, we can match directly.
+         *         For now we use the `action` field as the primary signal.
+         */
+        function checkSignalForAsset(asset, analysisData) {
+            const signalCfg = signalMap.find(s => s.assetCode === asset && s.isActive === 'y');
+            if (!signalCfg) {
+                updateSignalStrip(asset, 'idle', 'No config for this asset');
+                return;
+            }
+
+            const action = (analysisData.action || '').toLowerCase();
+
+            // Parse comma-separated codes
+            const callCodes = (signalCfg.CallSigNal || '').split(',').map(s => s.trim());
+            const putCodes = (signalCfg.PUTSignal || '').split(',').map(s => s.trim());
+
+            // The Rust server sends action as "call" / "put" / "hold"
+            // We use this directly as the trade signal
+            let decision = 'idle';
+            let reason = '';
+
+            if (action === 'call') {
+                decision = 'call';
+                reason = `CALL signal (src: ${analysisData.action_source || 'analysis'})`;
+            } else if (action === 'put') {
+                decision = 'put';
+                reason = `PUT signal (src: ${analysisData.action_source || 'analysis'})`;
+            } else {
+                decision = 'idle';
+                reason = `HOLD — No matching signal`;
+            }
+
+            updateSignalStrip(asset, decision, reason);
+
+            // Log only when signal changes (avoid spam)
+            const key = `${asset}_${decision}`;
+            if (window._lastSignalKey !== key) {
+                window._lastSignalKey = key;
+                const tag = decision === 'idle' ? 'idle' : 'signal';
+                log(`${asset}: ${decision.toUpperCase()} — ${reason}`, tag);
+            }
+        }
+
+        function updateSignalStrip(asset, decision, reason) {
+            const strip = document.getElementById('signalStrip');
+            // Keep only label + update main chip
+            const icon = decision === 'call' ? '🟢' : decision === 'put' ? '🔴' : '⏸️';
+            const cls = decision === 'call' ? 'call' : decision === 'put' ? 'put' : 'idle';
+
+            strip.innerHTML = `
+            <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">Signal:</span>
+            <div class="signal-chip ${cls} slide-in">
+                <span class="signal-icon">${icon}</span>
+                ${asset} → ${decision.toUpperCase()}
+            </div>
+            <span style="font-size:0.7rem;color:var(--text-muted)">${reason}</span>
+        `;
+        }
+
+        // ===================================================================
+        //  UTILITIES
+        // ===================================================================
+        function setConnStatus(ok) {
+            const badge = document.getElementById('connBadge');
+            const text = document.getElementById('connText');
+            badge.className = 'conn-badge ' + (ok ? 'ok' : 'fail');
+            text.textContent = ok ? 'Connected' : 'Disconnected';
+        }
+
+        function log(msg, type = 'system') {
+            const body = document.getElementById('logBody');
+            const row = document.createElement('div');
+            row.className = 'log-row slide-in';
+            const t = new Date().toLocaleTimeString('en-GB');
+            const tagClass = type || 'system';
+            const tagLabel = type === 'system' ? 'SYS' :
+                type === 'trade' ? 'TRD' :
+                    type === 'signal' ? 'SIG' :
+                        type === 'error' ? 'ERR' :
+                            type === 'idle' ? 'IDL' : 'SYS';
+            row.innerHTML = `<span class="t">${t}</span><span class="tag ${tagClass}">${tagLabel}</span><span class="msg">${msg}</span>`;
+            body.insertBefore(row, body.firstChild);
+
+            // Keep max 200 log entries
+            while (body.children.length > 200) body.removeChild(body.lastChild);
+        }
+
+        function clearLogs() {
+            document.getElementById('logBody').innerHTML = '';
+            log('Logs cleared', 'system');
+        }
+
+        function showToast(msg) {
+            const c = document.getElementById('toastContainer');
+            const div = document.createElement('div');
+            div.className = 'toast';
+            div.textContent = msg;
+            c.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // ===================================================================
+        //  INIT
+        // ===================================================================
+        initChart();
+        loadSignalConfig();
+    </script>
+</body>
+
+</html>

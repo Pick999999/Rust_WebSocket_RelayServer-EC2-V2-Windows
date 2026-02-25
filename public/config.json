@@ -1,0 +1,58 @@
+{
+  "username": "default",
+  "assetList": [
+    {
+      "symbol": "R_10",
+      "name": "Volatility 10 Index"
+    },
+    {
+      "symbol": "R_25",
+      "name": "Volatility 25 Index"
+    },
+    {
+      "symbol": "R_50",
+      "name": "Volatility 50 Index"
+    },
+    {
+      "symbol": "R_75",
+      "name": "Volatility 75 Index"
+    },
+    {
+      "symbol": "R_100",
+      "name": "Volatility 100 Index"
+    }
+  ],
+  "defaultAsset": "R_10",
+  "startMoneyTrade": 100.0,
+  "moneyMartinGale": [
+    1.0,
+    2.0,
+    6.0,
+    8.0,
+    16.0,
+    54.0,
+    162.0,
+    324.0,
+    648.0
+  ],
+  "tradeTypes": [
+    "FixTrade",
+    "MartinGaleTrade"
+  ],
+  "selectedTradeType": "MartinGaleTrade",
+  "targetMoney": 1000.0,
+  "emaShortType": "ema",
+  "emaShortPeriod": 3,
+  "emaMediumType": "hma",
+  "emaMediumPeriod": 5,
+  "emaLongType": "hma",
+  "emaLongPeriod": 10,
+  "thresholds": [
+    {
+      "asset": "R_10",
+      "macd12": 0.1,
+      "macd23": 0.1,
+      "slopeValue": 0.001
+    }
+  ]
+}

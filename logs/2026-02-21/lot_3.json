@@ -1,0 +1,65 @@
+{
+  "LotNo": 3,
+  "TradeObjectList": [
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 1,
+      "TradeTime": "21-02-2026 06:01:22",
+      "asset": "R_75",
+      "action": "call",
+      "moneyTrade": 1.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "loss",
+      "Profit": -0.57,
+      "BalanceOnLot": -0.57,
+      "winCon": "5",
+      "lossCon": "0.3",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 2,
+      "TradeTime": "21-02-2026 06:02:58",
+      "asset": "R_75",
+      "action": "call",
+      "moneyTrade": 1.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "loss",
+      "Profit": -1.0,
+      "BalanceOnLot": -1.5699999999999998,
+      "winCon": "5",
+      "lossCon": "0.3",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 3,
+      "TradeTime": "21-02-2026 06:03:58",
+      "asset": "R_75",
+      "action": "put",
+      "moneyTrade": 1.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "win",
+      "Profit": 0.94,
+      "BalanceOnLot": -0.6299999999999999,
+      "winCon": "5",
+      "lossCon": "0.3",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 4,
+      "TradeTime": "21-02-2026 06:04:58",
+      "asset": "R_75",
+      "action": "put",
+      "moneyTrade": 1.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "loss",
+      "Profit": -1.0,
+      "BalanceOnLot": -1.63,
+      "winCon": "5",
+      "lossCon": "0.3",
+      "isstopTrade": false
+    }
+  ]
+}

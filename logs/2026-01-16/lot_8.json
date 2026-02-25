@@ -1,0 +1,20 @@
+{
+  "LotNo": 8,
+  "TradeObjectList": [
+    {
+      "LotNo": 8,
+      "TradeNoOnThisLot": 1,
+      "TradeTime": "16-01-2026 18:03:58",
+      "asset": "R_50",
+      "action": "call",
+      "moneyTrade": 1.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "win",
+      "Profit": 0.95,
+      "BalanceOnLot": 0.95,
+      "winCon": "1",
+      "lossCon": "0.8",
+      "isstopTrade": true
+    }
+  ]
+}

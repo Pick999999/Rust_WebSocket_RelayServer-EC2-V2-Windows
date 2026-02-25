@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Setup | Configuration</title>
+    <meta name="description"
+        content="Configure trading parameters including assets, martingale sequence, EMA settings, and thresholds">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-input: #0f3460;
+            --accent-primary: #e94560;
+            --accent-secondary: #0f3460;
+            --accent-success: #00d9a0;
+            --accent-warning: #ffc107;
+            --accent-info: #17a2b8;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6c6c7c;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-glow: 0 0 30px rgba(233, 69, 96, 0.3);
+            --gradient-primary: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
+            --gradient-success: linear-gradient(135deg, #00d9a0 0%, #00a085 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image:
+                radial-gradient(ellipse at top left, rgba(233, 69, 96, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(15, 52, 96, 0.2) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .username-display {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 217, 160, 0.1);
+            border-radius: 8px;
+            display: inline-block;
+            color: var(--accent-success);
+            font-weight: 500;
+        }
+
+        /* Cards */
+        .config-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .config-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--gradient-primary);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Asset Grid */
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .asset-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .asset-item:hover {
+            background: var(--bg-input);
+            border-color: var(--accent-info);
+        }
+
+        .asset-checkbox {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .asset-info {
+            flex: 1;
+        }
+
+        .asset-symbol {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .asset-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* EMA Settings Grid */
+        .ema-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .ema-item {
+            padding: 1.25rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .ema-item-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--accent-info);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ema-item-title .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .ema-item-title .dot.short {
+            background: #00BFFF;
+        }
+
+        .ema-item-title .dot.medium {
+            background: #FFD700;
+        }
+
+        .ema-item-title .dot.long {
+            background: #FF6347;
+        }
+
+        .ema-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .ema-row .form-select {
+            flex: 1;
+        }
+
+        .ema-row .form-input {
+            width: 80px;
+        }
+
+        /* Threshold Table */
+        .threshold-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .threshold-table th,
+        .threshold-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .threshold-table th {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .threshold-table tr:hover td {
+            background: rgba(15, 52, 96, 0.5);
+        }
+
+        .threshold-table input {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .threshold-table input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .threshold-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .threshold-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .threshold-btn.delete {
+            background: rgba(233, 69, 96, 0.2);
+            color: var(--accent-primary);
+        }
+
+        .threshold-btn.delete:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .add-threshold-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 217, 160, 0.1);
+            border: 1px dashed var(--accent-success);
+            border-radius: 10px;
+            color: var(--accent-success);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .add-threshold-btn:hover {
+            background: var(--accent-success);
+            color: var(--bg-primary);
+        }
+
+        /* Martingale Editor */
+        .martingale-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .martingale-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .step-input {
+            width: 70px;
+            padding: 0.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .step-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .remove-step {
+            width: 24px;
+            height: 24px;
+            background: rgba(233, 69, 96, 0.2);
+            border: none;
+            border-radius: 6px;
+            color: var(--accent-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .remove-step:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .add-step-btn {
+            padding: 0.75rem 1.25rem;
+            background: rgba(0, 217, 160, 0.1);
+            border: 1px dashed var(--accent-success);
+            border-radius: 10px;
+            color: var(--accent-success);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .add-step-btn:hover {
+            background: var(--accent-success);
+            color: var(--bg-primary);
+        }
+
+        /* Trade Type Selector */
+        .trade-type-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .trade-type-option {
+            flex: 1;
+            position: relative;
+        }
+
+        .trade-type-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .trade-type-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.25rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .trade-type-option input:checked+.trade-type-label {
+            border-color: var(--accent-primary);
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .trade-type-label:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .trade-type-icon {
+            font-size: 2rem;
+        }
+
+        .trade-type-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .trade-type-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-input);
+            border-color: var(--accent-info);
+        }
+
+        .btn-danger {
+            background: rgba(233, 69, 96, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid var(--accent-primary);
+        }
+
+        .btn-danger:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            background: var(--gradient-success);
+        }
+
+        .toast-error {
+            background: var(--accent-primary);
+        }
+
+        /* Row Layout */
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Number Input */
+        .number-input-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .number-input-group .form-input {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .currency-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Back Button */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 15, 26, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .trade-type-group {
+                flex-direction: column;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                min-width: 100%;
+            }
+
+            .ema-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .saving-indicator {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="container">
+        <a href="/" class="back-link">
+            ← กลับหน้าหลัก
+        </a>
+
+        <div class="header">
+            <h1>⚙️ Trading Setup</h1>
+            <p>ปรับแต่งค่าการเทรดตามความต้องการของคุณ</p>
+            <div class="username-display" id="usernameDisplay">👤 User: loading...</div>
+        </div>
+
+        <!-- Username -->
+        <div class="config-card">
+            <div class="card-header">
+                <div class="card-icon">👤</div>
+                <div>
+                    <div class="card-title">Username</div>
+                    <div class="card-subtitle">ชื่อผู้ใช้สำหรับระบุเจ้าของ config</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">ชื่อผู้ใช้</label>
+                <input type="text" class="form-input" id="username" placeholder="กรอกชื่อผู้ใช้">
+            </div>
+        </div>
+
+        <!-- Asset List -->
+        <div class="config-card">
+            <div class="card-header">
+                <div class="card-icon">📊</div>
+                <div>
+                    <div class="card-title">Asset List</div>
+                    <div class="card-subtitle">เลือกสินทรัพย์ที่ต้องการเทรด</div>
+                </div>
+            </div>
+            <div class="asset-grid" id="assetGrid">
+                <!-- Assets will be rendered here -->
+            </div>
+        </div>
+
+        <!-- EMA Settings -->
+        <div class="config-card">
+            <div class="card-header">
+                <div class="card-icon">📈</div>
+                <div>
+                    <div class="card-title">EMA Settings</div>
+                    <div class="card-subtitle">ตั้งค่าประเภทและ Period ของ EMA</div>
+                </div>
+            </div>
+            <div class="ema-grid">
+                <!-- EMA Short -->
+                <div class="ema-item">
+                    <div class="ema-item-title">
+                        <span class="dot short"></span>
+                        EMA Short
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="emaShortType">
+                            <option value="ema">EMA</option>
+                            <option value="hma">HMA</option>
+                            <option value="ehma">EHMA</option>
+                            <option value="sma">SMA</option>
+                            <option value="wma">WMA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Period</label>
+                        <input type="number" class="form-input" id="emaShortPeriod" min="1" value="3">
+                    </div>
+                </div>
+
+                <!-- EMA Medium -->
+                <div class="ema-item">
+                    <div class="ema-item-title">
+                        <span class="dot medium"></span>
+                        EMA Medium
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="emaMediumType">
+                            <option value="ema">EMA</option>
+                            <option value="hma">HMA</option>
+                            <option value="ehma">EHMA</option>
+                            <option value="sma">SMA</option>
+                            <option value="wma">WMA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Period</label>
+                        <input type="number" class="form-input" id="emaMediumPeriod" min="1" value="8">
+                    </div>
+                </div>
+
+                <!-- EMA Long -->
+                <div class="ema-item">
+                    <div class="ema-item-title">
+                        <span class="dot long"></span>
+                        EMA Long
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="emaLongType">
+                            <option value="ema">EMA</option>
+                            <option value="hma">HMA</option>
+                            <option value="ehma">EHMA</option>
+                            <option value="sma">SMA</option>
+                            <option value="wma">WMA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Period</label>
+                        <input type="number" class="form-input" id="emaLongPeriod" min="1" value="21">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thresholds -->
+        <div class="config-card">
+            <div class="card-header">
+                <div class="card-icon">🎚️</div>
+                <div>
+                    <div class="card-title">Thresholds</div>
+                    <div class="card-subtitle">ค่า Threshold สำหรับแต่ละ Asset (MACD12, MACD23, SlopeValue)</div>
+                </div>
+            </div>
+            <table class="threshold-table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>MACD 12</th>
+                        <th>MACD 23</th>
+                        <th>Slope Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="thresholdTableBody">
+                    <!-- Thresholds will be rendered here -->
+                </tbody>
+            </table>
+            <button type="button" class="add-threshold-btn" onclick="addThresholdRow()">
+                + เพิ่ม Threshold
+            </button>
+        </div>
+
+        <!-- Default Asset & Trade Settings -->
+        <div class="row">
+            <div class="config-card">
+                <div class="card-header">
+                    <div class="card-icon">🎯</div>
+                    <div>
+                        <div class="card-title">Default Asset</div>
+                        <div class="card-subtitle">สินทรัพย์เริ่มต้นที่จะเลือกเมื่อเปิดหน้าเทรด</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">เลือกสินทรัพย์เริ่มต้น</label>
+                    <select class="form-select" id="defaultAsset">
+                        <!-- Options will be populated -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-card">
+                <div class="card-header">
+                    <div class="card-icon">💰</div>
+                    <div>
+                        <div class="card-title">Start Money</div>
+                        <div class="card-subtitle">เงินเริ่มต้นสำหรับการเทรดแต่ละครั้ง</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">จำนวนเงินเริ่มต้น</label>
+                    <div class="number-input-group">
+                        <input type="number" class="form-input" id="startMoneyTrade" min="0" step="0.01"
+                            placeholder="100">
+                        <span class="currency-label">USD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Money -->
+        <div class="config-card">
+            <div class="card-header">
+                <div class="card-icon">🏆</div>
+                <div>
+                    <div class="card-title">Target Money</div>
+                    <div class="card-subtitle">เป้าหมายเงินที่ต้องการ (หยุดเทรดเมื่อถึงเป้า)</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">เป้าหมายเงิน</label>
+                <div class="number-input-group">
+                    <input type="number" class="form-input" id="targetMoney" min="0" step="0.01" placeholder="1000">
+                    <span class="currency-label">USD</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trade Type -->
+        <div class="config-card">
+            <div class="card-header">
+                <div class="card-icon">📈</div>
+                <div>
+                    <div class="card-title">Trade Type</div>
+                    <div class="card-subtitle">เลือกรูปแบบการเทรด</div>
+                </div>
+            </div>
+            <div class="trade-type-group" id="tradeTypeGroup">
+                <div class="trade-type-option">
+                    <input type="radio" name="tradeType" value="FixTrade" id="tradeType_FixTrade">
+                    <label class="trade-type-label" for="tradeType_FixTrade">
+                        <span class="trade-type-icon">📌</span>
+                        <span class="trade-type-name">Fix Trade</span>
+                        <span class="trade-type-desc">เทรดด้วยจำนวนเงินคงที่ทุกเครื้ง</span>
+                    </label>
+                </div>
+                <div class="trade-type-option">
+                    <input type="radio" name="tradeType" value="MartinGaleTrade" id="tradeType_MartinGaleTrade">
+                    <label class="trade-type-label" for="tradeType_MartinGaleTrade">
+                        <span class="trade-type-icon">🎰</span>
+                        <span class="trade-type-name">Martingale Trade</span>
+                        <span class="trade-type-desc">เพิ่มเงินตามลำดับเมื่อแพ้</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Martingale Sequence -->
+        <div class="config-card" id="martingaleCard">
+            <div class="card-header">
+                <div class="card-icon">🔢</div>
+                <div>
+                    <div class="card-title">Martingale Sequence</div>
+                    <div class="card-subtitle">กำหนดลำดับเงินสำหรับ Martingale (เพิ่มขึ้นเมื่อแพ้)</div>
+                </div>
+            </div>
+            <div class="martingale-container" id="martingaleContainer">
+                <!-- Steps will be rendered here -->
+            </div>
+            <button type="button" class="add-step-btn" onclick="addMartingaleStep()">
+                + เพิ่ม Step
+            </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="saveConfig()">
+                💾 บันทึกการตั้งค่า
+            </button>
+            <button class="btn btn-secondary" onclick="loadConfig()">
+                🔄 โหลดค่าใหม่
+            </button>
+            <button class="btn btn-danger" onclick="resetConfig()">
+                ⚠️ รีเซ็ตค่าเริ่มต้น
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span class="toast-message">บันทึกสำเร็จ!</span>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // ตัวแปร global
+        let currentConfig = {};
+        let martingaleValues = [];
+        let thresholds = [];
+
+        // โหลดค่าเมื่อเปิดหน้า
+        document.addEventListener('DOMContentLoaded', async () => {
+            showLoading(true);
+            await loadConfig();
+            setupEventListeners();
+            showLoading(false);
+        });
+
+        // แสดง/ซ่อน Loading
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // ตั้งค่า Event Listeners
+        function setupEventListeners() {
+            // ฟัง config updates จากหน้าอื่น
+            configManager.onConfigChange((config) => {
+                console.log('📡 Config updated from another page');
+                currentConfig = config;
+                renderAll();
+            });
+        }
+
+        // โหลดค่า config
+        async function loadConfig() {
+            await configManager.initialize();
+            currentConfig = configManager.getConfig();
+            martingaleValues = [...(currentConfig.moneyMartinGale || [])];
+            thresholds = [...(currentConfig.thresholds || [])];
+            renderAll();
+        }
+
+        // Render ทุกส่วน
+        function renderAll() {
+            renderUsername();
+            renderAssetGrid();
+            renderDefaultAssetSelect();
+            renderEMASettings();
+            renderThresholds();
+            renderTradeType();
+            renderMartingaleSteps();
+            renderSimpleInputs();
+        }
+
+        // Render Username
+        function renderUsername() {
+            const usernameInput = document.getElementById('username');
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            usernameInput.value = currentConfig.username || 'default';
+            usernameDisplay.textContent = `👤 User: ${currentConfig.username || 'default'}`;
+        }
+
+        // Render Asset Grid
+        function renderAssetGrid() {
+            const grid = document.getElementById('assetGrid');
+            const allAssets = [
+                { symbol: 'R_10', name: 'Volatility 10 Index' },
+                { symbol: 'R_25', name: 'Volatility 25 Index' },
+                { symbol: 'R_50', name: 'Volatility 50 Index' },
+                { symbol: 'R_75', name: 'Volatility 75 Index' },
+                { symbol: 'R_100', name: 'Volatility 100 Index' },
+                { symbol: '1HZ10V', name: 'Volatility 10 (1s) Index' },
+                { symbol: '1HZ25V', name: 'Volatility 25 (1s) Index' },
+                { symbol: '1HZ50V', name: 'Volatility 50 (1s) Index' },
+                { symbol: '1HZ75V', name: 'Volatility 75 (1s) Index' },
+                { symbol: '1HZ100V', name: 'Volatility 100 (1s) Index' }
+            ];
+
+            const selectedSymbols = (currentConfig.assetList || []).map(a => a.symbol);
+
+            grid.innerHTML = allAssets.map(asset => `
+                <div class="asset-item">
+                    <input type="checkbox" class="asset-checkbox" 
+                           id="asset_${asset.symbol}" 
+                           value="${asset.symbol}"
+                           ${selectedSymbols.includes(asset.symbol) ? 'checked' : ''}>
+                    <label class="asset-info" for="asset_${asset.symbol}">
+                        <div class="asset-symbol">${asset.symbol}</div>
+                        <div class="asset-name">${asset.name}</div>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        // Render Default Asset Select
+        function renderDefaultAssetSelect() {
+            const select = document.getElementById('defaultAsset');
+            select.innerHTML = (currentConfig.assetList || []).map(asset => `
+                <option value="${asset.symbol}" ${asset.symbol === currentConfig.defaultAsset ? 'selected' : ''}>
+                    ${asset.symbol} - ${asset.name}
+                </option>
+            `).join('');
+        }
+
+        // Render EMA Settings
+        function renderEMASettings() {
+            document.getElementById('emaShortType').value = currentConfig.emaShortType || 'ema';
+            document.getElementById('emaShortPeriod').value = currentConfig.emaShortPeriod || 3;
+            document.getElementById('emaMediumType').value = currentConfig.emaMediumType || 'ema';
+            document.getElementById('emaMediumPeriod').value = currentConfig.emaMediumPeriod || 8;
+            document.getElementById('emaLongType').value = currentConfig.emaLongType || 'ema';
+            document.getElementById('emaLongPeriod').value = currentConfig.emaLongPeriod || 21;
+        }
+
+        // Render Thresholds
+        function renderThresholds() {
+            const tbody = document.getElementById('thresholdTableBody');
+            tbody.innerHTML = thresholds.map((threshold, index) => `
+                <tr>
+                    <td>
+                        <select class="form-select" id="threshold_asset_${index}" style="width: 120px;">
+                            ${getAssetOptions(threshold.asset)}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" step="0.0001" value="${threshold.macd12 || 0}" 
+                               onchange="updateThreshold(${index}, 'macd12', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" step="0.0001" value="${threshold.macd23 || 0}" 
+                               onchange="updateThreshold(${index}, 'macd23', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" step="0.0001" value="${threshold.slopeValue || 0}" 
+                               onchange="updateThreshold(${index}, 'slopeValue', this.value)">
+                    </td>
+                    <td class="threshold-actions">
+                        <button type="button" class="threshold-btn delete" onclick="removeThreshold(${index})">
+                            🗑️
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Add change listeners for asset selects
+            thresholds.forEach((_, index) => {
+                const select = document.getElementById(`threshold_asset_${index}`);
+                if (select) {
+                    select.onchange = () => updateThreshold(index, 'asset', select.value);
+                }
+            });
+        }
+
+        // Get Asset Options HTML
+        function getAssetOptions(selectedAsset) {
+            const allAssets = [
+                'R_10', 'R_25', 'R_50', 'R_75', 'R_100',
+                '1HZ10V', '1HZ25V', '1HZ50V', '1HZ75V', '1HZ100V'
+            ];
+            return allAssets.map(asset =>
+                `<option value="${asset}" ${asset === selectedAsset ? 'selected' : ''}>${asset}</option>`
+            ).join('');
+        }
+
+        // Add Threshold Row
+        function addThresholdRow() {
+            thresholds.push({
+                asset: 'R_10',
+                macd12: 0,
+                macd23: 0,
+                slopeValue: 0
+            });
+            renderThresholds();
+        }
+
+        // Update Threshold
+        function updateThreshold(index, field, value) {
+            if (field === 'asset') {
+                thresholds[index].asset = value;
+            } else {
+                thresholds[index][field] = parseFloat(value) || 0;
+            }
+        }
+
+        // Remove Threshold
+        function removeThreshold(index) {
+            thresholds.splice(index, 1);
+            renderThresholds();
+        }
+
+        // Render Trade Type
+        function renderTradeType() {
+            const selected = currentConfig.selectedTradeType || 'FixTrade';
+            document.querySelectorAll('input[name="tradeType"]').forEach(input => {
+                input.checked = input.value === selected;
+            });
+
+            // Show/hide martingale card based on trade type
+            const martingaleCard = document.getElementById('martingaleCard');
+            martingaleCard.style.display = selected === 'MartinGaleTrade' ? 'block' : 'none';
+
+            // Add listener for trade type change
+            document.querySelectorAll('input[name="tradeType"]').forEach(input => {
+                input.onchange = () => {
+                    const martingaleCard = document.getElementById('martingaleCard');
+                    martingaleCard.style.display = input.value === 'MartinGaleTrade' ? 'block' : 'none';
+                };
+            });
+        }
+
+        // Render Martingale Steps
+        function renderMartingaleSteps() {
+            const container = document.getElementById('martingaleContainer');
+            container.innerHTML = martingaleValues.map((value, index) => `
+                <div class="martingale-step">
+                    <span class="step-label">Step ${index + 1}</span>
+                    <input type="number" class="step-input" 
+                           value="${value}" 
+                           min="0" 
+                           step="0.01"
+                           onchange="updateMartingaleValue(${index}, this.value)">
+                    ${martingaleValues.length > 1 ? `
+                        <button type="button" class="remove-step" onclick="removeMartingaleStep(${index})">
+                            ×
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Render Simple Inputs
+        function renderSimpleInputs() {
+            document.getElementById('startMoneyTrade').value = currentConfig.startMoneyTrade || 100;
+            document.getElementById('targetMoney').value = currentConfig.targetMoney || 1000;
+        }
+
+        // Add Martingale Step
+        function addMartingaleStep() {
+            const lastValue = martingaleValues[martingaleValues.length - 1] || 1;
+            martingaleValues.push(lastValue * 2);
+            renderMartingaleSteps();
+        }
+
+        // Remove Martingale Step
+        function removeMartingaleStep(index) {
+            if (martingaleValues.length > 1) {
+                martingaleValues.splice(index, 1);
+                renderMartingaleSteps();
+            }
+        }
+
+        // Update Martingale Value
+        function updateMartingaleValue(index, value) {
+            martingaleValues[index] = parseFloat(value) || 0;
+        }
+
+        // Get Selected Assets
+        function getSelectedAssets() {
+            const allAssets = [
+                { symbol: 'R_10', name: 'Volatility 10 Index' },
+                { symbol: 'R_25', name: 'Volatility 25 Index' },
+                { symbol: 'R_50', name: 'Volatility 50 Index' },
+                { symbol: 'R_75', name: 'Volatility 75 Index' },
+                { symbol: 'R_100', name: 'Volatility 100 Index' },
+                { symbol: '1HZ10V', name: 'Volatility 10 (1s) Index' },
+                { symbol: '1HZ25V', name: 'Volatility 25 (1s) Index' },
+                { symbol: '1HZ50V', name: 'Volatility 50 (1s) Index' },
+                { symbol: '1HZ75V', name: 'Volatility 75 (1s) Index' },
+                { symbol: '1HZ100V', name: 'Volatility 100 (1s) Index' }
+            ];
+
+            const selectedSymbols = [];
+            document.querySelectorAll('.asset-checkbox:checked').forEach(cb => {
+                selectedSymbols.push(cb.value);
+            });
+
+            return allAssets.filter(a => selectedSymbols.includes(a.symbol));
+        }
+
+        // Save Config
+        async function saveConfig() {
+            const selectedAssets = getSelectedAssets();
+            if (selectedAssets.length === 0) {
+                showToast('กรุณาเลือกอย่างน้อย 1 สินทรัพย์', 'error');
+                return;
+            }
+
+            showLoading(true);
+
+            const newConfig = {
+                username: document.getElementById('username').value || 'default',
+                assetList: selectedAssets,
+                defaultAsset: document.getElementById('defaultAsset').value,
+                startMoneyTrade: parseFloat(document.getElementById('startMoneyTrade').value) || 100,
+                targetMoney: parseFloat(document.getElementById('targetMoney').value) || 1000,
+                moneyMartinGale: [...martingaleValues],
+                selectedTradeType: document.querySelector('input[name="tradeType"]:checked')?.value || 'FixTrade',
+                tradeTypes: ['FixTrade', 'MartinGaleTrade'],
+                // EMA Settings
+                emaShortType: document.getElementById('emaShortType').value,
+                emaShortPeriod: parseInt(document.getElementById('emaShortPeriod').value) || 3,
+                emaMediumType: document.getElementById('emaMediumType').value,
+                emaMediumPeriod: parseInt(document.getElementById('emaMediumPeriod').value) || 8,
+                emaLongType: document.getElementById('emaLongType').value,
+                emaLongPeriod: parseInt(document.getElementById('emaLongPeriod').value) || 21,
+                // Thresholds
+                thresholds: [...thresholds]
+            };
+
+            const success = await configManager.saveConfigAsync(newConfig);
+
+            showLoading(false);
+
+            if (success) {
+                showToast('บันทึกการตั้งค่าสำเร็จ!', 'success');
+                currentConfig = configManager.getConfig();
+                renderDefaultAssetSelect();
+                renderUsername();
+            } else {
+                showToast('เกิดข้อผิดพลาดในการบันทึก', 'error');
+            }
+        }
+
+        // Reset Config
+        async function resetConfig() {
+            if (confirm('ยืนยันการรีเซ็ตค่าทั้งหมดเป็นค่าเริ่มต้น?')) {
+                showLoading(true);
+                currentConfig = await configManager.resetToDefault();
+                martingaleValues = [...(currentConfig.moneyMartinGale || [])];
+                thresholds = [...(currentConfig.thresholds || [])];
+                renderAll();
+                showLoading(false);
+                showToast('รีเซ็ตค่าเริ่มต้นสำเร็จ!', 'success');
+            }
+        }
+
+        // Show Toast Notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.querySelector('.toast-message').textContent = message;
+            toast.className = `toast toast-${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

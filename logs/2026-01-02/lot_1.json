@@ -1,0 +1,35 @@
+{
+  "LotNo": 1,
+  "TradeObjectList": [
+    {
+      "LotNo": 1,
+      "TradeNoOnThisLot": 1,
+      "TradeTime": "02-01-2026 12:07:00",
+      "asset": "R_10",
+      "action": "call",
+      "moneyTrade": 1.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "win",
+      "Profit": 0.95,
+      "BalanceOnLot": 0.95,
+      "winCon": "1",
+      "lossCon": "2",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 1,
+      "TradeNoOnThisLot": 2,
+      "TradeTime": "02-01-2026 12:08:00",
+      "asset": "R_10",
+      "action": "call",
+      "moneyTrade": 1.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "loss",
+      "Profit": -1.0,
+      "BalanceOnLot": -0.050000000000000044,
+      "winCon": "1",
+      "lossCon": "2",
+      "isstopTrade": false
+    }
+  ]
+}

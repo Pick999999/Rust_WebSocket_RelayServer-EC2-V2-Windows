@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Scanner - Server-Side Market Scanner</title>
+    <meta name="description" content="Server-side automatic market scanner for CI and ADX indicators">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-input: #0f3460;
+            --accent-primary: #9b59b6;
+            --accent-secondary: #0f3460;
+            --accent-success: #00d9a0;
+            --accent-warning: #ffc107;
+            --accent-danger: #e94560;
+            --accent-info: #17a2b8;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6c6c7c;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --gradient-primary: linear-gradient(135deg, #9b59b6 0%, #0f3460 100%);
+            --gradient-success: linear-gradient(135deg, #00d9a0 0%, #00a085 100%);
+            --gradient-danger: linear-gradient(135deg, #e94560 0%, #c0392b 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image:
+                radial-gradient(ellipse at top left, rgba(155, 89, 182, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(15, 52, 96, 0.2) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--accent-primary);
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .server-badge {
+            background: var(--accent-success);
+            color: #000;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .status-pill.idle {
+            background: rgba(108, 108, 124, 0.2);
+            color: var(--text-muted);
+        }
+
+        .status-pill.scanning {
+            background: rgba(0, 217, 160, 0.2);
+            color: var(--accent-success);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-pill.stopped {
+            background: rgba(233, 69, 96, 0.2);
+            color: var(--accent-danger);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .controls-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .control-card h3 {
+            font-size: 1rem;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .form-select,
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .form-select:focus,
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-start {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 217, 160, 0.4);
+        }
+
+        .btn-stop {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .results-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-header h2 {
+            font-size: 1.25rem;
+            color: var(--accent-primary);
+        }
+
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .asset-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .asset-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .asset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .asset-symbol {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-primary);
+        }
+
+        .asset-price {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .asset-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border-radius: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .metric.trending .metric-value {
+            color: var(--accent-success);
+        }
+
+        .metric.choppy .metric-value {
+            color: var(--accent-danger);
+        }
+
+        .metric.neutral .metric-value {
+            color: var(--accent-warning);
+        }
+
+        .candle-strip {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+        }
+
+        .candle-dot {
+            width: 12px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .candle-dot.up {
+            background: var(--accent-success);
+        }
+
+        .candle-dot.down {
+            background: var(--accent-danger);
+        }
+
+        .log-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .log-area {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .log-entry.info {
+            color: var(--accent-info);
+        }
+
+        .log-entry.success {
+            color: var(--accent-success);
+        }
+
+        .log-entry.error {
+            color: var(--accent-danger);
+        }
+
+        .log-entry.warning {
+            color: var(--accent-warning);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .info-box {
+            background: rgba(23, 162, 184, 0.1);
+            border: 1px solid var(--accent-info);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--accent-info);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header-left {
+                flex-direction: column;
+            }
+
+            .controls-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Gauge Meter Styles */
+        .meter-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .meter-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(155, 89, 182, 0.2);
+        }
+
+        .meter-card.selected {
+            border-color: var(--accent-success);
+            background: rgba(0, 217, 160, 0.1);
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .rank-badge.gold {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #000;
+        }
+
+        .rank-badge.silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: #000;
+        }
+
+        .rank-badge.bronze {
+            background: linear-gradient(135deg, #cd7f32, #b87333);
+            color: #fff;
+        }
+
+        .asset-name {
+            font-weight: 600;
+            color: var(--accent-primary);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 100px;
+            height: 75px;
+            margin: 0 auto 10px;
+        }
+
+        .gauge-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: var(--bg-input);
+            stroke-width: 8;
+        }
+
+        .gauge-value {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .gauge-value.good {
+            stroke: url(#gaugeGradientGood);
+        }
+
+        .gauge-value.neutral {
+            stroke: url(#gaugeGradientNeutral);
+        }
+
+        .gauge-value.bad {
+            stroke: url(#gaugeGradientBad);
+        }
+
+        .gauge-needle {
+            transform-origin: 50px 50px;
+            transition: transform 0.5s ease;
+        }
+
+        .gauge-text {
+            font-size: 14px;
+            font-weight: 700;
+            fill: #fff;
+            text-anchor: middle;
+        }
+
+        .settings-collapse {
+            display: none;
+            /* Hidden by default */
+            transition: all 0.3s ease;
+        }
+
+        .settings-collapse.show {
+            display: block;
+        }
+
+        .toggle-settings-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 10px;
+        }
+
+        .toggle-settings-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .metrics-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+
+        .metric-item {
+            text-align: center;
+        }
+
+        .metric-item .label {
+            color: var(--text-muted);
+        }
+
+        .metric-item .value {
+            font-weight: 600;
+        }
+
+        .metric-item .value.good {
+            color: var(--accent-success);
+        }
+
+        .metric-item .value.neutral {
+            color: var(--accent-warning);
+        }
+
+        .metric-item .value.bad {
+            color: var(--accent-danger);
+        }
+
+        .candle-strip-mini {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            margin-top: 8px;
+        }
+
+        .candle-dot-mini {
+            width: 8px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .candle-dot-mini.up {
+            background: var(--accent-success);
+        }
+
+        .candle-dot-mini.down {
+            background: var(--accent-danger);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <a href="/" class="back-btn">🏠 Home</a>
+                <h1>🤖 Auto Scanner</h1>
+                <span class="server-badge">Server-Side</span>
+                <button class="toggle-settings-btn" onclick="toggleSettings()" id="btnToggleSettings">⚙️ Show
+                    Settings</button>
+            </div>
+            <div class="status-pill idle" id="statusPill">
+                <span>●</span> <span id="statusText">Idle</span>
+            </div>
+        </header>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            ℹ️ <strong>Server-Side Scanner:</strong> การ scan จะทำงานต่อเนื่องบน server แม้ปิด browser แล้ว
+            ข้อมูลจะถูกบันทึกไป Cloud Firestore โดยอัตโนมัติจนกว่าจะครบกำหนด Stop Time หรือกดหยุดด้วยตนเอง
+        </div>
+
+        <!-- Always Visible Controls -->
+        <section style="display: flex; gap: 1rem; margin-bottom: 2rem; justify-content: center;">
+            <button class="btn btn-start" id="btnStart" onclick="startScan()" style="max-width: 200px;">
+                ▶️ Start Scan
+            </button>
+            <button class="btn btn-stop" id="btnStop" onclick="stopScan()" disabled style="max-width: 200px;">
+                ⏹️ Stop Scan
+            </button>
+        </section>
+
+        <!-- Collapsible Settings & Logs -->
+        <div id="settingsPanel" class="settings-collapse">
+            <!-- Controls -->
+            <section class="controls-section">
+                <div class="control-card">
+                    <h3>⏱️ Scan Settings</h3>
+                    <div class="form-group">
+                        <label class="form-label">Scan Interval</label>
+                        <select class="form-select" id="scanInterval">
+                            <option value="60">Every 1 minute</option>
+                            <option value="180" selected>Every 3 minutes</option>
+                            <option value="300">Every 5 minutes</option>
+                            <option value="600">Every 10 minutes</option>
+                            <option value="900">Every 15 minutes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Candle Timeframe</label>
+                        <select class="form-select" id="candleTimeframe">
+                            <option value="60">1 Minute</option>
+                            <option value="180">3 Minutes</option>
+                            <option value="300" selected>5 Minutes</option>
+                            <option value="900">15 Minutes</option>
+                            <option value="1800">30 Minutes</option>
+                        </select>
+                    </div>
+                    <!-- Firestore Toggle -->
+                    <div class="form-group"
+                        style="display: flex; align-items: center; gap: 10px; margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                        <input type="checkbox" id="chkSaveToFirestore" checked style="width: auto; cursor: pointer;">
+                        <label for="chkSaveToFirestore" class="form-label"
+                            style="margin:0; cursor: pointer; color: var(--accent-success);">🔥 Save to
+                            Firestore</label>
+                    </div>
+                </div>
+
+                <div class="control-card">
+                    <h3>⏰ Schedule</h3>
+                    <div class="form-group">
+                        <label class="form-label">Stop Time (Optional)</label>
+                        <input type="datetime-local" class="form-input" id="stopTime">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Indicator Period</label>
+                        <input type="number" class="form-input" id="indicatorPeriod" value="14" min="5" max="50">
+                    </div>
+                </div>
+
+                <!-- Stats (Moved inside settings) -->
+                <div class="control-card">
+                    <h3>📊 Statistics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <div class="stat-label">Total Scans</div>
+                            <div class="stat-value" id="statTotalScans" style="font-size: 1.2rem;">0</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Records Saved</div>
+                            <div class="stat-value" id="statRecordsSaved" style="font-size: 1.2rem;">0</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Last Scan</div>
+                            <div class="stat-value" id="statLastScan" style="font-size: 1rem; color: #fff;">--:--</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Next Scan</div>
+                            <div class="stat-value" id="statNextScan" style="font-size: 1rem; color: #fff;">--:--</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Log -->
+            <section class="log-section">
+                <div class="log-header">
+                    <h3>📋 Activity Log</h3>
+                    <button onclick="clearLog()"
+                        style="background: var(--bg-input); border: none; color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">Clear</button>
+                </div>
+                <div class="log-area" id="logArea">
+                    <div class="log-entry info">[System] Server-Side Scanner ready. Press Start to begin...</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Results -->
+        <section class="results-section">
+            <div class="results-header">
+                <h2>📊 Latest Scan Results</h2>
+                <span id="resultsCount" style="color: var(--text-muted); font-size: 0.875rem;">0 assets</span>
+            </div>
+            <div class="asset-grid" id="assetGrid"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                <!-- SVG Definitions -->
+                <svg style="position: absolute; width: 0; height: 0;">
+                    <defs>
+                        <linearGradient id="gaugeGradientGood" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#00d9a0" />
+                            <stop offset="100%" style="stop-color:#00a085" />
+                        </linearGradient>
+                        <linearGradient id="gaugeGradientNeutral" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#ffc107" />
+                            <stop offset="100%" style="stop-color:#ff9800" />
+                        </linearGradient>
+                        <linearGradient id="gaugeGradientBad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#f44336" />
+                            <stop offset="100%" style="stop-color:#c62828" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="loading-state">
+                    <p>Press "Start Scan" to begin server-side scanning</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Config Manager -->
+    <script src="/config.js"></script>
+
+    <script>
+        let statusPollingInterval = null;
+
+        // Log function
+        function log(msg, type = 'info') {
+            const area = document.getElementById('logArea');
+            const time = new Date().toLocaleTimeString();
+            area.innerHTML += `<div class="log-entry ${type}">[${time}] ${msg}</div>`;
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logArea').innerHTML = '<div class="log-entry info">[System] Log cleared</div>';
+        }
+
+        // Update status UI
+        function updateStatusUI(status) {
+            const pill = document.getElementById('statusPill');
+            const statusText = document.getElementById('statusText');
+            const btnStart = document.getElementById('btnStart');
+            const btnStop = document.getElementById('btnStop');
+
+            if (status.is_running) {
+                pill.className = 'status-pill scanning';
+                statusText.textContent = 'Scanning...';
+                btnStart.disabled = true;
+                btnStop.disabled = false;
+            } else {
+                pill.className = 'status-pill idle';
+                statusText.textContent = 'Idle';
+                btnStart.disabled = false;
+                btnStop.disabled = true;
+            }
+
+            // Update stats
+            document.getElementById('statTotalScans').textContent = status.total_scans || 0;
+            document.getElementById('statRecordsSaved').textContent = status.total_records_saved || 0;
+
+            // Last scan time
+            if (status.last_scan_time) {
+                const lastTime = new Date(status.last_scan_time);
+                document.getElementById('statLastScan').textContent = lastTime.toLocaleTimeString();
+            }
+
+            // Next scan time
+            if (status.next_scan_time) {
+                const nextTime = new Date(status.next_scan_time);
+                const now = new Date();
+                const diffMs = nextTime - now;
+                if (diffMs > 0) {
+                    const mins = Math.floor(diffMs / 60000);
+                    const secs = Math.floor((diffMs % 60000) / 1000);
+                    document.getElementById('statNextScan').textContent =
+                        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }
+            } else {
+                document.getElementById('statNextScan').textContent = '--:--';
+            }
+
+            // Render results
+            if (status.last_results && status.last_results.length > 0) {
+                renderResults(status.last_results);
+            }
+
+            // Show errors in log
+            if (status.errors && status.errors.length > 0) {
+                status.errors.forEach(err => {
+                    if (!document.querySelector(`[data-error="${err}"]`)) {
+                        log(err, 'error');
+                    }
+                });
+            }
+        }
+
+        // Render results with Meter Visuals
+        function renderResults(results) {
+            const grid = document.getElementById('assetGrid');
+            const placeholder = document.querySelector('.loading-state');
+            if (placeholder) placeholder.remove();
+
+            // Ensure SVG defs stay
+            if (!grid.querySelector('svg defs')) {
+                // Re-add SVG if cleared (though we try to append only)
+                // Actually easier to just rebuild HTML but include SVG at top of loop or have it outside grid.
+                // Since I put SVG inside grid above, clearing innerHTML will kill it.
+                // Better approach: SVG is already in DOM if it was static, avoiding clearing it.
+                // But here I'll just re-inject it or move it out. 
+                // Moved SVG to inside grid in my replacement above, so I need to preserve it.
+                // Hack: Just re-add it every time or move it out. 
+                // Let's move SVG definition to body top in next step? No, cannot change multiple disjoint easily.
+                // I'll just prepend it to the html string.
+            }
+
+            const svgDefs = `
+                <svg style="position: absolute; width: 0; height: 0;">
+                    <defs>
+                        <linearGradient id="gaugeGradientGood" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#00d9a0" />
+                            <stop offset="100%" style="stop-color:#00a085" />
+                        </linearGradient>
+                        <linearGradient id="gaugeGradientNeutral" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#ffc107" />
+                            <stop offset="100%" style="stop-color:#ff9800" />
+                        </linearGradient>
+                        <linearGradient id="gaugeGradientBad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#f44336" />
+                            <stop offset="100%" style="stop-color:#c62828" />
+                        </linearGradient>
+                    </defs>
+                </svg>`;
+
+            document.getElementById('resultsCount').textContent = `${results.length} assets`;
+
+            const cardsHtml = results.map((data, index) => {
+                const ciClass = data.ci < 38.2 ? 'good' : data.ci > 61.8 ? 'bad' : 'neutral';
+                const adxClass = data.adx > 25 ? 'good' : data.adx < 20 ? 'bad' : 'neutral';
+                const rank = data.rank || (index + 1);
+
+                // Rank badge class
+                let rankBadgeClass = '';
+                if (rank === 1) rankBadgeClass = 'gold';
+                else if (rank === 2) rankBadgeClass = 'silver';
+                else if (rank === 3) rankBadgeClass = 'bronze';
+
+                const needleAngle = ((data.ci / 100) * 180) - 90;
+
+                // Parse recent candles
+                const candles = (data.recent_candles ? data.recent_candles.split(',') : []).slice(-8);
+                const candlesHtml = candles.map(dir => `<div class="candle-dot-mini ${dir}"></div>`).join('');
+
+                return `
+                    <div class="meter-card">
+                        ${rank <= 3 ? `<span class="rank-badge ${rankBadgeClass}">#${rank}</span>` : `<span style="position: absolute; top: 5px; right: 8px; font-size: 10px; color: #757575;">#${rank}</span>`}
+                        <div class="asset-name">${data.symbol}</div>
+                        
+                        <div class="gauge-container">
+                            <svg viewBox="0 0 100 75">
+                                <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" />
+                                <path class="gauge-value ${ciClass}" 
+                                      d="M 10 50 A 40 40 0 0 1 90 50"
+                                      stroke-dasharray="${125.6 * (data.ci / 100)} 125.6" />
+                                <g class="gauge-needle" style="transform: rotate(${needleAngle}deg)">
+                                    <line x1="50" y1="50" x2="50" y2="15" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                                    <circle cx="50" cy="50" r="4" fill="#fff"/>
+                                </g>
+                                <text class="gauge-text" x="50" y="58" transform="translate(0, 10)">${data.ci.toFixed(1)}</text>
+                            </svg>
+                        </div>
+                        
+                        <div class="metrics-row">
+                            <div class="metric-item">
+                                <div class="label">CI</div>
+                                <div class="value ${ciClass}">${data.ci.toFixed(1)}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="label">ADX</div>
+                                <div class="value ${adxClass}">${data.adx.toFixed(1)}</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="label">Score</div>
+                                <div class="value" style="color: var(--accent-info);">${data.score.toFixed(0)}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="candle-strip-mini">${candlesHtml}</div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.innerHTML = svgDefs + cardsHtml;
+        }
+
+        // Fetch status from server
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/scanner/status');
+                if (response.ok) {
+                    const status = await response.json();
+                    updateStatusUI(status);
+                }
+            } catch (e) {
+                console.error('Failed to fetch status:', e);
+            }
+        }
+
+        // Start scanning
+        async function startScan() {
+            // Get config from configManager
+            const config = typeof configManager !== 'undefined' ? configManager.getConfig() : null;
+            if (!config || !config.assetList || config.assetList.length === 0) {
+                log('Error: No assets configured. Please configure assets in Trading Setup first.', 'error');
+                alert('No assets configured. Please go to Trading Setup to configure assets.');
+                return;
+            }
+
+            const stopTimeInput = document.getElementById('stopTime').value;
+            let stopTime = null;
+            if (stopTimeInput) {
+                stopTime = new Date(stopTimeInput).toISOString();
+            }
+
+            const payload = {
+                interval_seconds: parseInt(document.getElementById('scanInterval').value),
+                candle_timeframe: parseInt(document.getElementById('candleTimeframe').value),
+                indicator_period: parseInt(document.getElementById('indicatorPeriod').value),
+                stop_time: stopTime,
+                save_to_firestore: document.getElementById('chkSaveToFirestore').checked,
+                assets: config.assetList.map(a => ({ symbol: a.symbol, name: a.name }))
+            };
+
+            log(`Starting scanner with ${payload.assets.length} assets, interval ${payload.interval_seconds}s...`, 'info');
+
+            try {
+                const response = await fetch('/api/scanner/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    log('Scanner started successfully! Scanning continues even if you close this page.', 'success');
+                    startStatusPolling();
+                } else {
+                    log(`Failed to start: ${result.error}`, 'error');
+                }
+            } catch (e) {
+                log(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        // Stop scanning
+        async function stopScan() {
+            log('Stopping scanner...', 'warning');
+
+            try {
+                const response = await fetch('/api/scanner/stop', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    log('Scanner stopped.', 'warning');
+                } else {
+                    log(`Failed to stop: ${result.error}`, 'error');
+                }
+            } catch (e) {
+                log(`Error: ${e.message}`, 'error');
+            }
+
+            fetchStatus();
+        }
+
+        // Toggle Settings Visibility
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            const btn = document.getElementById('btnToggleSettings');
+
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+                btn.textContent = '⚙️ Show Settings';
+            } else {
+                panel.classList.add('show');
+                btn.textContent = '⚙️ Hide Settings';
+            }
+        }
+
+        // Start polling for status updates
+        function startStatusPolling() {
+            if (statusPollingInterval) {
+                clearInterval(statusPollingInterval);
+            }
+            statusPollingInterval = setInterval(fetchStatus, 3000);
+            fetchStatus();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Server-Side Scanner ready.', 'info');
+
+            // Set default stop time to 1 hour from now (using local time format for datetime-local input)
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            // Format for datetime-local: YYYY-MM-DDTHH:mm (local time, not UTC)
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('stopTime').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+            // Start polling status (check if server already has a running scan)
+            startStatusPolling();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Trade System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .action-code-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .code-input-group {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .code-input-group h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .code-input-group.put {
+            border-color: #dc3545;
+        }
+
+        .code-input-group.call {
+            border-color: #28a745;
+        }
+
+        .code-input-group.put h4 {
+            color: #dc3545;
+        }
+
+        .code-input-group.call h4 {
+            color: #28a745;
+        }
+
+        .martingale-input {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .timeframe-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .timeframe-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .timeframe-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .timeframe-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .target-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .target-option {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-stop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        .status-bar {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .asset-list-display {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            min-height: 40px;
+            border: 1px solid #ddd;
+        }
+
+        .asset-tag {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 15px;
+            margin: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Auto Trade System</h1>
+
+        <!-- Section 1: Asset List -->
+        <div class="section">
+            <div class="section-title">1. Asset List Selection</div>
+            
+            <div class="form-group">
+                <label>เลือกวิธีการเลือก Asset:</label>
+                <div class="radio-group">
+                    <div class="radio-item">
+                        <input type="radio" id="assetManual" name="assetSelection" value="manual" checked>
+                        <label for="assetManual">เลือกเอง</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="assetChoppy" name="assetSelection" value="choppy">
+                        <label for="assetChoppy">เลือกจาก Choppy Indicator</label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="manualAssetSelection">
+                <div class="form-group">
+                    <label>เลือก Assets (กด Ctrl เพื่อเลือกหลายตัว):</label>
+                    <select id="assetList" multiple style="height: 150px;">
+                        <option value="EURUSD">EUR/USD</option>
+                        <option value="GBPUSD">GBP/USD</option>
+                        <option value="USDJPY">USD/JPY</option>
+                        <option value="AUDUSD">AUD/USD</option>
+                        <option value="USDCAD">USD/CAD</option>
+                        <option value="NZDUSD">NZD/USD</option>
+                        <option value="EURJPY">EUR/JPY</option>
+                        <option value="GBPJPY">GBP/JPY</option>
+                        <option value="EURGBP">EUR/GBP</option>
+                        <option value="AUDJPY">AUD/JPY</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="choppyAssetSelection" style="display: none;">
+                <div class="form-group">
+                    <label>จำนวน Assets ที่ต้องการ (เรียงตาม Choppy Indicator):</label>
+                    <input type="number" id="topAssetsCount" min="1" max="10" value="5">
+                </div>
+                <div class="form-group">
+                    <label>รายการ Assets ที่เลือก (Auto จาก Choppy Indicator):</label>
+                    <div class="asset-list-display" id="selectedAssets">
+                        <span class="asset-tag">กำลังคำนวณ...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Choppy Indicator Update Mode -->
+        <div class="section">
+            <div class="section-title">2. Choppy Indicator Update Mode</div>
+            
+            <div class="form-group">
+                <label>โหมดการอัพเดท Choppy Indicator:</label>
+                <div class="radio-group">
+                    <div class="radio-item">
+                        <input type="radio" id="choppyFixed" name="choppyUpdate" value="fixed" checked>
+                        <label for="choppyFixed">Fix (คำนวณครั้งเดียว)</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="choppyAuto" name="choppyUpdate" value="auto">
+                        <label for="choppyAuto">Auto Update (คำนวณทุกๆ 50 วินาที)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="choppyAutoSettings" style="display: none; margin-top: 10px;">
+                <div class="form-group">
+                    <label>ช่วงเวลาในการอัพเดท (วินาที):</label>
+                    <input type="number" id="choppyUpdateInterval" value="50" min="10" max="300">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Action Plan -->
+        <div class="section">
+            <div class="section-title">3. Action Plan</div>
+            
+            <div class="form-group">
+                <label>เลือก Action Plan:</label>
+                <div class="radio-group">
+                    <div class="radio-item">
+                        <input type="radio" id="planSimple" name="actionPlan" value="simple" checked>
+                        <label for="planSimple">Simple Plan</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="planCutType" name="actionPlan" value="cutType">
+                        <label for="planCutType">Cut Type</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="planCandleCode" name="actionPlan" value="candleCode">
+                        <label for="planCandleCode">By Candle Code</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simple Plan Settings -->
+            <div id="simplePlanSettings" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>Simple Plan Configuration:</label>
+                    <input type="text" placeholder="Simple plan settings...">
+                </div>
+            </div>
+
+            <!-- Cut Type Settings -->
+            <div id="cutTypeSettings" style="display: none; margin-top: 15px;">
+                <div class="form-group">
+                    <label>Cut Type Configuration:</label>
+                    <input type="text" placeholder="Cut type settings...">
+                </div>
+            </div>
+
+            <!-- Candle Code Settings -->
+            <div id="candleCodeSettings" style="display: none; margin-top: 15px;">
+                <div class="action-code-group">
+                    <div class="code-input-group put">
+                        <h4>🔴 PUT Candle Codes</h4>
+                        <label>กรอก Candle Code (เช่น 3,10,15):</label>
+                        <input type="text" id="putCandleCodes" placeholder="3,10,15">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            แยกด้วย comma (,) เช่น 3,10,15,20
+                        </small>
+                    </div>
+
+                    <div class="code-input-group call">
+                        <h4>🟢 CALL Candle Codes</h4>
+                        <label>กรอก Candle Code (เช่น 3,10,15):</label>
+                        <input type="text" id="callCandleCodes" placeholder="3,10,15">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            แยกด้วย comma (,) เช่น 3,10,15,20
+                        </small>
+                    </div>
+
+                    <div class="code-input-group">
+                        <h4>⚪ IDLE</h4>
+                        <p style="color: #666; font-size: 14px;">
+                            Candle Code ที่ไม่อยู่ในกลุ่ม PUT และ CALL จะถูกตั้งเป็น IDLE (ไม่เทรด)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Money Trade Type -->
+        <div class="section">
+            <div class="section-title">4. Money Trade Type</div>
+            
+            <div class="form-group">
+                <label>เลือกประเภทการจัดการเงิน:</label>
+                <div class="radio-group">
+                    <div class="radio-item">
+                        <input type="radio" id="moneyFixed" name="moneyType" value="fixed" checked>
+                        <label for="moneyFixed">Fixed Money</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="moneyMartingale" name="moneyType" value="martingale">
+                        <label for="moneyMartingale">Martingale</label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fixedMoneySettings">
+                <div class="form-group">
+                    <label>จำนวนเงินต่อการเทรด:</label>
+                    <input type="number" id="fixedAmount" value="10" min="1" step="0.01">
+                </div>
+            </div>
+
+            <div id="martingaleSettings" style="display: none;">
+                <div class="form-group">
+                    <label>Martingale Sequence (แยกด้วย comma):</label>
+                    <input type="text" id="martingaleSequence" value="10,20,40,80,160" placeholder="10,20,40,80,160">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        ระบุลำดับเงินเดิมพันในแต่ละครั้งหลังแพ้ เช่น 10,20,40,80,160
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label>เริ่มต้นที่จำนวนเงิน:</label>
+                    <input type="number" id="martingaleStart" value="10" min="1" step="0.01">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: TimeFrame -->
+        <div class="section">
+            <div class="section-title">5. TimeFrame</div>
+            
+            <div class="form-group">
+                <label>เลือก TimeFrame:</label>
+                <div class="timeframe-group">
+                    <button class="timeframe-btn" data-value="55sec">55 Sec</button>
+                    <button class="timeframe-btn active" data-value="3min">3 Min</button>
+                    <button class="timeframe-btn" data-value="5min">5 Min</button>
+                    <button class="timeframe-btn" data-value="10min">10 Min</button>
+                    <button class="timeframe-btn" data-value="15min">15 Min</button>
+                    <button class="timeframe-btn" data-value="30min">30 Min</button>
+                    <button class="timeframe-btn" data-value="60min">60 Min</button>
+                </div>
+                <input type="hidden" id="selectedTimeframe" value="3min">
+            </div>
+        </div>
+
+        <!-- Section 6: Target Settings -->
+        <div class="section">
+            <div class="section-title">6. Target Settings (เป้าหมายการหยุดเทรด)</div>
+            
+            <div class="form-group">
+                <label>โหมดการหยุดเทรด:</label>
+                <div class="radio-group">
+                    <div class="radio-item">
+                        <input type="radio" id="targetBalance" name="targetMode" value="balance" checked>
+                        <label for="targetBalance">เมื่อถึงยอด Balance เป้าหมาย</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="targetTime" name="targetMode" value="time">
+                        <label for="targetTime">เทรดต่อเนื่องจนครบเวลา</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="target-settings">
+                <div class="target-option">
+                    <h4 style="margin-bottom: 10px; color: #667eea;">🎯 Target Balance</h4>
+                    <div class="form-group">
+                        <label>Balance เริ่มต้น:</label>
+                        <input type="number" id="startBalance" value="100" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Balance เป้าหมาย:</label>
+                        <input type="number" id="targetBalanceAmount" value="150" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>กำไรที่ต้องการ:</label>
+                        <input type="number" id="targetProfit" value="50" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <div class="target-option">
+                    <h4 style="margin-bottom: 10px; color: #667eea;">⏱️ Time Based</h4>
+                    <div class="form-group">
+                        <label>เวลาเริ่มต้น:</label>
+                        <input type="time" id="startTime" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label>เวลาสิ้นสุด:</label>
+                        <input type="time" id="endTime" value="17:00">
+                    </div>
+                    <div class="form-group">
+                        <label>ระยะเวลาเทรด (ชั่วโมง):</label>
+                        <input type="number" id="tradeDuration" value="8" min="1" max="24" step="0.5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="btn-container">
+            <button class="btn btn-start" id="startBtn">▶️ Start Trading</button>
+            <button class="btn btn-stop" id="stopBtn">⏹️ Stop Trading</button>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="statusBar">
+            สถานะ: พร้อมเริ่มต้น
+        </div>
+    </div>
+
+    <script>
+        // Asset Selection Mode Toggle
+        document.querySelectorAll('input[name="assetSelection"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'manual') {
+                    document.getElementById('manualAssetSelection').style.display = 'block';
+                    document.getElementById('choppyAssetSelection').style.display = 'none';
+                } else {
+                    document.getElementById('manualAssetSelection').style.display = 'none';
+                    document.getElementById('choppyAssetSelection').style.display = 'block';
+                    // Simulate choppy indicator calculation
+                    calculateChoppyIndicator();
+                }
+            });
+        });
+
+        // Choppy Update Mode Toggle
+        document.querySelectorAll('input[name="choppyUpdate"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'auto') {
+                    document.getElementById('choppyAutoSettings').style.display = 'block';
+                } else {
+                    document.getElementById('choppyAutoSettings').style.display = 'none';
+                }
+            });
+        });
+
+        // Action Plan Toggle
+        document.querySelectorAll('input[name="actionPlan"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('simplePlanSettings').style.display = 'none';
+                document.getElementById('cutTypeSettings').style.display = 'none';
+                document.getElementById('candleCodeSettings').style.display = 'none';
+                
+                if (this.value === 'simple') {
+                    document.getElementById('simplePlanSettings').style.display = 'block';
+                } else if (this.value === 'cutType') {
+                    document.getElementById('cutTypeSettings').style.display = 'block';
+                } else if (this.value === 'candleCode') {
+                    document.getElementById('candleCodeSettings').style.display = 'block';
+                }
+            });
+        });
+
+        // Money Type Toggle
+        document.querySelectorAll('input[name="moneyType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'fixed') {
+                    document.getElementById('fixedMoneySettings').style.display = 'block';
+                    document.getElementById('martingaleSettings').style.display = 'none';
+                } else {
+                    document.getElementById('fixedMoneySettings').style.display = 'none';
+                    document.getElementById('martingaleSettings').style.display = 'block';
+                }
+            });
+        });
+
+        // TimeFrame Selection
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('selectedTimeframe').value = this.dataset.value;
+            });
+        });
+
+        // Simulate Choppy Indicator Calculation
+        function calculateChoppyIndicator() {
+            const assets = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD', 'USD/CAD'];
+            const container = document.getElementById('selectedAssets');
+            container.innerHTML = '';
+            
+            assets.forEach(asset => {
+                const tag = document.createElement('span');
+                tag.className = 'asset-tag';
+                tag.textContent = asset;
+                container.appendChild(tag);
+            });
+        }
+
+        // Start Trading Button
+        document.getElementById('startBtn').addEventListener('click', function() {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.textContent = '🟢 สถานะ: กำลังเทรด...';
+            statusBar.style.background = '#d4edda';
+            statusBar.style.color = '#155724';
+        });
+
+        // Stop Trading Button
+        document.getElementById('stopBtn').addEventListener('click', function() {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.textContent = '🔴 สถานะ: หยุดการเทรด';
+            statusBar.style.background = '#f8d7da';
+            statusBar.style.color = '#721c24';
+        });
+    </script>
+</body>
+</html>

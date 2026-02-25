@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade New - EMA Analysis Trading</title>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped&family=Sarabun:wght@200;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-card: #1a1f3a;
+            --border-color: #2a3f5f;
+            --accent: #4fc3f7;
+            --success: #00d9a0;
+            --danger: #f44336;
+            --warning: #ffc107;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9e9e9e;
+        }
+
+        body,
+        * {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--border-color) 100%);
+            padding: 20px 30px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            color: var(--accent);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-info {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .status-badge.connected {
+            background: rgba(0, 217, 160, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status-badge.disconnected {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+        }
+
+        .status-dot.disconnected {
+            background: var(--danger);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .balance-box {
+            background: rgba(0, 217, 160, 0.1);
+            border: 1px solid var(--success);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .balance-amount {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        /* Sidebar Panel */
+        .sidebar-panel {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(42, 63, 95, 0.5) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .panel-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(79, 195, 247, 0.2);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #00a085 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 217, 160, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #c62828 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Action Mode Selector */
+        .action-mode-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-mode-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .action-mode-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .action-mode-btn.active {
+            background: rgba(79, 195, 247, 0.2);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(42, 63, 95, 0.5) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .chart-header {
+            padding: 15px 20px;
+            background: rgba(42, 63, 95, 0.3);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-header h2 {
+            color: var(--accent);
+            font-size: 18px;
+            margin: 0;
+        }
+
+        #chartContainer {
+            height: 400px;
+            background: var(--bg-dark);
+        }
+
+        /* Analysis Card */
+        .analysis-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(42, 63, 95, 0.5) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .analysis-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(79, 195, 247, 0.1);
+        }
+
+        .analysis-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .analysis-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .analysis-value.up {
+            color: var(--success);
+        }
+
+        .analysis-value.down {
+            color: var(--danger);
+        }
+
+        .analysis-value.call {
+            color: var(--success);
+        }
+
+        .analysis-value.put {
+            color: var(--danger);
+        }
+
+        /* Trade Log */
+        .trade-log {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(42, 63, 95, 0.5) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            max-height: 300px;
+        }
+
+        .trade-log-header {
+            padding: 15px 20px;
+            background: rgba(42, 63, 95, 0.3);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trade-log-content {
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 240px;
+        }
+
+        .log-entry {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .log-entry.win {
+            background: rgba(0, 217, 160, 0.1);
+            border-left: 3px solid var(--success);
+        }
+
+        .log-entry.loss {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 3px solid var(--danger);
+        }
+
+        /* Alert Indicator */
+        .alert-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: none;
+            animation: slideIn 0.3s ease;
+            z-index: 9999;
+        }
+
+        .alert-indicator.crossover {
+            background: linear-gradient(135deg, var(--warning) 0%, #ff9800 100%);
+            color: black;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--success) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(42, 63, 95, 0.5) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .stat-card.success .stat-value {
+            color: var(--success);
+        }
+
+        .stat-card.danger .stat-value {
+            color: var(--danger);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📊 Trade New - EMA Analysis</h1>
+            <div class="header-info">
+                <div class="status-badge disconnected" id="statusBadge">
+                    <span class="status-dot disconnected" id="statusDot"></span>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <div class="balance-box">
+                    <div class="balance-label">Balance</div>
+                    <div class="balance-amount" id="balanceAmount">$0.00</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-label">Total Trades</div>
+                <div class="stat-value" id="totalTrades">0</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">Wins</div>
+                <div class="stat-value" id="totalWins">0</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-icon">❌</div>
+                <div class="stat-label">Losses</div>
+                <div class="stat-value" id="totalLosses">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-label">Profit/Loss</div>
+                <div class="stat-value" id="profitLoss">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Sidebar -->
+            <div class="sidebar-panel">
+                <!-- Connection -->
+                <div class="panel-section">
+                    <div class="section-title">🔌 Connection</div>
+                    <div class="form-group">
+                        <label>API Token</label>
+                        <input type="password" id="apiToken" class="form-control" placeholder="Enter API Token">
+                    </div>
+                    <div class="form-group">
+                        <label>Asset</label>
+                        <select id="assetSelect" class="form-control">
+                            <option value="R_10">Volatility 10</option>
+                            <option value="R_25">Volatility 25</option>
+                            <option value="R_50" selected>Volatility 50</option>
+                            <option value="R_75">Volatility 75</option>
+                            <option value="R_100">Volatility 100</option>
+                        </select>
+                    </div>
+                    <button id="connectBtn" class="btn btn-success btn-block" onclick="connectWS()">🔗 Connect</button>
+                    <button id="disconnectBtn" class="btn btn-danger btn-block" onclick="disconnectWS()"
+                        style="margin-top: 10px;">🔌 Disconnect</button>
+                </div>
+
+                <!-- Action Mode -->
+                <div class="panel-section">
+                    <div class="section-title">⚡ Action Mode</div>
+                    <div class="action-mode-selector">
+                        <button class="action-mode-btn" data-mode="simple"
+                            onclick="setActionMode('simple')">Simple</button>
+                        <button class="action-mode-btn" data-mode="cut_type_short"
+                            onclick="setActionMode('cut_type_short')">Short Cut</button>
+                        <button class="action-mode-btn active" data-mode="cut_type_long"
+                            onclick="setActionMode('cut_type_long')">Long Cut</button>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-secondary); margin-top: 10px;">
+                        💡 If action is "hold", fallback to ema_medium_slope_direction
+                    </p>
+                </div>
+
+                <!-- Trading Config -->
+                <div class="panel-section">
+                    <div class="section-title">💰 Trading Config</div>
+                    <div class="form-group">
+                        <label>Initial Stake ($)</label>
+                        <input type="number" id="initialStake" class="form-control" value="1" min="0.35" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Profit ($)</label>
+                        <input type="number" id="targetProfit" class="form-control" value="10" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (seconds)</label>
+                        <input type="number" id="duration" class="form-control" value="55" min="1">
+                    </div>
+
+                    <!-- Progress to Target -->
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <span>Progress to Target</span>
+                            <span id="progressText">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto Trade -->
+                <div class="panel-section">
+                    <div class="section-title">🤖 Auto Trade</div>
+                    <button id="startAutoBtn" class="btn btn-primary btn-block" onclick="startAutoTrade()">▶️ Start Auto
+                        Trade</button>
+                    <button id="stopAutoBtn" class="btn btn-warning btn-block" onclick="stopAutoTrade()"
+                        style="margin-top: 10px; display: none;">⏹️ Stop Auto Trade</button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Chart -->
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h2>📈 Live Chart</h2>
+                        <span id="chartAsset">R_50</span>
+                    </div>
+                    <div id="chartContainer"></div>
+                </div>
+
+                <!-- Analysis Card -->
+                <div class="analysis-card">
+                    <div class="section-title">📊 Real-Time Analysis</div>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <div class="analysis-label">Action</div>
+                            <div class="analysis-value" id="actionValue">-</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Action Source</div>
+                            <div class="analysis-value" id="actionSource">-</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Short Slope</div>
+                            <div class="analysis-value" id="shortSlope">-</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Medium Slope</div>
+                            <div class="analysis-value" id="mediumSlope">-</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Long Slope</div>
+                            <div class="analysis-value" id="longSlope">-</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">EMA Cut Long Type</div>
+                            <div class="analysis-value" id="emaCutLongType">-</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">Candles Since Cut</div>
+                            <div class="analysis-value" id="candlesSinceCut">-</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="analysis-label">MACD 12</div>
+                            <div class="analysis-value" id="macd12">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trade Log -->
+                <div class="trade-log">
+                    <div class="trade-log-header">
+                        <span class="section-title" style="margin: 0;">📋 Trade Log</span>
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;"
+                            onclick="clearTradeLog()">Clear</button>
+                    </div>
+                    <div class="trade-log-content" id="tradeLogContent">
+                        <p style="color: var(--text-secondary); text-align: center;">No trades yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Indicator -->
+    <div class="alert-indicator crossover" id="crossoverAlert">
+        🔔 Medium-Long EMA Crossover Detected!
+    </div>
+
+    <script>
+        // Global State
+        let ws = null;
+        let chart, candleSeries, shortEmaSeries, mediumEmaSeries, longEmaSeries;
+        let candleData = [];
+        let isAutoTrading = false;
+        let actionMode = 'cut_type_long';
+        let lastCrossoverType = 'None';
+
+        // Stats
+        let totalTrades = 0;
+        let winCount = 0;
+        let lossCount = 0;
+        let runningProfit = 0;
+        let currentBalance = 0;
+
+        // Init Chart
+        function initChart() {
+            const container = document.getElementById('chartContainer');
+            chart = LightweightCharts.createChart(container, {
+                width: container.clientWidth,
+                height: 400,
+                layout: {
+                    background: { color: '#0a0e27' },
+                    textColor: '#d1d4dc',
+                },
+                grid: {
+                    vertLines: { color: '#1a1f3a' },
+                    horzLines: { color: '#1a1f3a' },
+                },
+                rightPriceScale: { borderColor: '#2a3f5f' },
+                timeScale: {
+                    borderColor: '#2a3f5f',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#00d9a0',
+                downColor: '#f44336',
+                borderUpColor: '#00d9a0',
+                borderDownColor: '#f44336',
+                wickUpColor: '#00d9a0',
+                wickDownColor: '#f44336',
+            });
+
+            shortEmaSeries = chart.addLineSeries({ color: '#00BFFF', lineWidth: 1, title: 'Short EMA' });
+            mediumEmaSeries = chart.addLineSeries({ color: '#ffc107', lineWidth: 2, title: 'Medium EMA' });
+            longEmaSeries = chart.addLineSeries({ color: '#FF6347', lineWidth: 2, title: 'Long EMA' });
+
+            window.addEventListener('resize', () => {
+                chart.applyOptions({ width: container.clientWidth });
+            });
+        }
+
+        // WebSocket Connection
+        function connectWS() {
+            const token = document.getElementById('apiToken').value;
+            const asset = document.getElementById('assetSelect').value;
+            const stake = parseFloat(document.getElementById('initialStake').value);
+            const duration = parseInt(document.getElementById('duration').value);
+            const targetProfit = parseFloat(document.getElementById('targetProfit').value);
+
+            updateStatus('connecting');
+            document.getElementById('chartAsset').textContent = asset;
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(protocol + '//' + window.location.host + '/ws');
+
+            ws.onopen = () => {
+                updateStatus('connected');
+
+                // Send start command
+                ws.send(JSON.stringify({
+                    command: "START_DERIV",
+                    asset: asset,
+                    trade_mode: "idle",
+                    money_mode: "fix",
+                    initial_stake: stake,
+                    duration: duration,
+                    duration_unit: "s",
+                    api_token: token,
+                    target_profit: targetProfit,
+                    target_win: 5
+                }));
+            };
+
+            ws.onmessage = handleMessage;
+
+            ws.onclose = () => {
+                updateStatus('disconnected');
+            };
+
+            ws.onerror = () => {
+                updateStatus('disconnected');
+            };
+        }
+
+        function disconnectWS() {
+            if (ws) {
+                ws.send(JSON.stringify({ command: "STOP_STREAMS" }));
+                setTimeout(() => {
+                    if (ws) ws.close();
+                }, 500);
+            }
+        }
+
+        function updateStatus(status) {
+            const badge = document.getElementById('statusBadge');
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+
+            if (status === 'connected') {
+                badge.className = 'status-badge connected';
+                dot.className = 'status-dot connected';
+                text.textContent = 'Connected';
+            } else if (status === 'connecting') {
+                badge.className = 'status-badge disconnected';
+                dot.className = 'status-dot disconnected';
+                text.textContent = 'Connecting...';
+            } else {
+                badge.className = 'status-badge disconnected';
+                dot.className = 'status-dot disconnected';
+                text.textContent = 'Disconnected';
+            }
+        }
+
+        // Handle WebSocket Messages
+        function handleMessage(event) {
+            try {
+                const data = JSON.parse(event.data);
+
+                switch (data.type) {
+                    case 'candle':
+                        updateChart(data);
+                        break;
+                    case 'ema_data':
+                        updateEmaLines(data);
+                        break;
+                    case 'analysis_data':
+                        updateAnalysis(data);
+                        break;
+                    case 'balance':
+                        updateBalance(data.balance);
+                        break;
+                    case 'trade_result':
+                        handleTradeResult(data);
+                        break;
+                    case 'lot_status':
+                        updateProgress(data);
+                        break;
+                }
+            } catch (e) {
+                console.error('Error parsing message:', e);
+            }
+        }
+
+        function updateChart(candle) {
+            const chartData = {
+                time: candle.time,
+                open: candle.open,
+                high: candle.high,
+                low: candle.low,
+                close: candle.close
+            };
+
+            // Update or add candle
+            const existingIndex = candleData.findIndex(c => c.time === candle.time);
+            if (existingIndex >= 0) {
+                candleData[existingIndex] = chartData;
+            } else {
+                candleData.push(chartData);
+                candleData.sort((a, b) => a.time - b.time);
+            }
+
+            candleSeries.setData(candleData);
+        }
+
+        function updateEmaLines(data) {
+            if (data.short_ema) {
+                const shortData = data.short_ema.map(e => ({ time: e.time, value: e.value }));
+                shortEmaSeries.setData(shortData);
+            }
+            if (data.long_ema) {
+                const longData = data.long_ema.map(e => ({ time: e.time, value: e.value }));
+                longEmaSeries.setData(longData);
+            }
+        }
+
+        function updateAnalysis(data) {
+            // Update action
+            const actionEl = document.getElementById('actionValue');
+            actionEl.textContent = data.action.toUpperCase();
+            actionEl.className = 'analysis-value ' + (data.action === 'call' ? 'call' : data.action === 'put' ? 'put' : '');
+
+            // Update action source
+            document.getElementById('actionSource').textContent = data.action_source || '-';
+
+            // Update slopes
+            updateSlopeDisplay('shortSlope', data.ema_short_slope_direction);
+            updateSlopeDisplay('mediumSlope', data.ema_medium_slope_direction);
+            updateSlopeDisplay('longSlope', data.ema_long_slope_direction);
+
+            // Update crossover info
+            const cutType = data.ema_cut_long_type || 'None';
+            const cutEl = document.getElementById('emaCutLongType');
+            cutEl.textContent = cutType;
+            cutEl.className = 'analysis-value ' + (cutType === 'UpTrend' ? 'up' : cutType === 'DownTrend' ? 'down' : '');
+
+            document.getElementById('candlesSinceCut').textContent = data.candles_since_ema_cut || '-';
+            document.getElementById('macd12').textContent = data.macd_12 ? data.macd_12.toFixed(4) : '-';
+
+            // Check for crossover and beep
+            if (cutType !== 'None' && cutType !== lastCrossoverType && data.candles_since_ema_cut === 0) {
+                lastCrossoverType = cutType;
+                showCrossoverAlert();
+                playBeeps(5);
+            }
+        }
+
+        function updateSlopeDisplay(elementId, direction) {
+            const el = document.getElementById(elementId);
+            el.textContent = direction;
+            el.className = 'analysis-value ' + (direction === 'Up' ? 'up' : direction === 'Down' ? 'down' : '');
+        }
+
+        function updateBalance(balance) {
+            currentBalance = balance;
+            document.getElementById('balanceAmount').textContent = '$' + balance.toFixed(2);
+        }
+
+        function handleTradeResult(data) {
+            totalTrades++;
+            if (data.status === 'win') {
+                winCount++;
+                runningProfit += data.profit;
+            } else {
+                lossCount++;
+                runningProfit += data.profit;
+            }
+
+            document.getElementById('totalTrades').textContent = totalTrades;
+            document.getElementById('totalWins').textContent = winCount;
+            document.getElementById('totalLosses').textContent = lossCount;
+
+            const profitEl = document.getElementById('profitLoss');
+            profitEl.textContent = (runningProfit >= 0 ? '+' : '') + '$' + runningProfit.toFixed(2);
+            profitEl.style.color = runningProfit >= 0 ? 'var(--success)' : 'var(--danger)';
+
+            addTradeLog(data);
+            checkTargetReached();
+        }
+
+        function updateProgress(data) {
+            const targetProfit = parseFloat(document.getElementById('targetProfit').value);
+            const progress = Math.min(100, Math.max(0, (data.grand_profit / targetProfit) * 100));
+
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = progress.toFixed(1) + '%';
+        }
+
+        function addTradeLog(data) {
+            const container = document.getElementById('tradeLogContent');
+            if (container.querySelector('p')) {
+                container.innerHTML = '';
+            }
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + data.status;
+            entry.innerHTML = `
+                <span>${new Date().toLocaleTimeString()}</span>
+                <span>${data.status.toUpperCase()}</span>
+                <span>$${data.stake}</span>
+                <span style="color: ${data.profit >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                    ${data.profit >= 0 ? '+' : ''}$${data.profit.toFixed(2)}
+                </span>
+            `;
+            container.insertBefore(entry, container.firstChild);
+        }
+
+        function clearTradeLog() {
+            document.getElementById('tradeLogContent').innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No trades yet</p>';
+        }
+
+        // Action Mode
+        function setActionMode(mode) {
+            actionMode = mode;
+            document.querySelectorAll('.action-mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            console.log('Action mode set to:', mode);
+        }
+
+        // Auto Trade
+        function startAutoTrade() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Please connect first!');
+                return;
+            }
+
+            isAutoTrading = true;
+            document.getElementById('startAutoBtn').style.display = 'none';
+            document.getElementById('stopAutoBtn').style.display = 'block';
+
+            ws.send(JSON.stringify({
+                command: "UPDATE_MODE",
+                trade_mode: "auto"
+            }));
+        }
+
+        function stopAutoTrade() {
+            isAutoTrading = false;
+            document.getElementById('startAutoBtn').style.display = 'block';
+            document.getElementById('stopAutoBtn').style.display = 'none';
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    command: "UPDATE_MODE",
+                    trade_mode: "idle"
+                }));
+            }
+        }
+
+        function checkTargetReached() {
+            const targetProfit = parseFloat(document.getElementById('targetProfit').value);
+            if (runningProfit >= targetProfit && isAutoTrading) {
+                stopAutoTrade();
+                playBeeps(3);
+                alert('🎉 Target Profit Reached! Profit: $' + runningProfit.toFixed(2));
+            }
+        }
+
+        // Alert and Beep
+        function showCrossoverAlert() {
+            const alert = document.getElementById('crossoverAlert');
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function playBeeps(count) {
+            let played = 0;
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            function beep() {
+                if (played >= count) return;
+
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.3;
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.15);
+
+                played++;
+                setTimeout(beep, 300);
+            }
+
+            beep();
+        }
+
+        // Initialize
+        window.onload = function () {
+            initChart();
+        };
+    </script>
+</body>
+
+</html>

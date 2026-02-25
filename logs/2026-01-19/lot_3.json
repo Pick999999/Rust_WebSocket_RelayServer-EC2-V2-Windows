@@ -1,0 +1,80 @@
+{
+  "LotNo": 3,
+  "TradeObjectList": [
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 1,
+      "TradeTime": "19-01-2026 05:36:58",
+      "asset": "1HZ100V",
+      "action": "put",
+      "moneyTrade": 100.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "loss",
+      "Profit": -100.0,
+      "BalanceOnLot": -100.0,
+      "winCon": "5",
+      "lossCon": "2",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 2,
+      "TradeTime": "19-01-2026 05:37:56",
+      "asset": "1HZ100V",
+      "action": "put",
+      "moneyTrade": 100.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "loss",
+      "Profit": -100.0,
+      "BalanceOnLot": -200.0,
+      "winCon": "5",
+      "lossCon": "2",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 3,
+      "TradeTime": "19-01-2026 05:38:57",
+      "asset": "1HZ100V",
+      "action": "put",
+      "moneyTrade": 100.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "loss",
+      "Profit": -100.0,
+      "BalanceOnLot": -300.0,
+      "winCon": "5",
+      "lossCon": "2",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 4,
+      "TradeTime": "19-01-2026 05:39:58",
+      "asset": "1HZ100V",
+      "action": "call",
+      "moneyTrade": 100.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "win",
+      "Profit": 95.41,
+      "BalanceOnLot": -204.59,
+      "winCon": "5",
+      "lossCon": "2",
+      "isstopTrade": false
+    },
+    {
+      "LotNo": 3,
+      "TradeNoOnThisLot": 5,
+      "TradeTime": "19-01-2026 05:40:56",
+      "asset": "1HZ100V",
+      "action": "call",
+      "moneyTrade": 100.0,
+      "MoneyTradeType": "Fixed",
+      "WinStatus": "win",
+      "Profit": 95.41,
+      "BalanceOnLot": -109.18,
+      "winCon": "5",
+      "lossCon": "2",
+      "isstopTrade": false
+    }
+  ]
+}
