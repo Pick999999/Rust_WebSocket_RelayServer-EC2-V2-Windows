@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deriv Trading Dashboard</title>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped&family=Playfair+Display:ital@1&family=Sarabun:wght@200&display=swap" rel="stylesheet">
+    
+<style>
+body,* {
+    font-family: 'Sarabun', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0e27;
+    color: #e0e0e0;
+    overflow-x: hidden;
+}
+
+/* Sidebar Trigger Zones */
+#sidebarTriggerLeft, #sidebarTriggerRight {
+    position: fixed;
+    top: 0;
+    width: 20px;
+    height: 100vh;
+    z-index: 999;
+}
+
+#sidebarTriggerLeft {
+    left: 0;
+}
+
+#sidebarTriggerRight {
+    right: 0;
+}
+
+/* Left Sidebar (Trading Panel) */
+.sidebar {
+    position: fixed;
+    left: -350px;
+    top: 0;
+    width: 350px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1a1f3a 0%, #0f1429 100%);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    z-index: 1000;
+    border-right: 2px solid #2a3f5f;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+/* Right Sidebar (Navigation Links) */
+.right-sidebar {
+    position: fixed;
+    right: -320px;
+    top: 0;
+    width: 320px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1a1f3a 0%, #0f1429 100%);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    z-index: 1000;
+    border-left: 2px solid #2a3f5f;
+}
+
+.right-sidebar.active {
+    right: 0;
+}
+
+.right-sidebar-header {
+    padding: 20px;
+    background: rgba(42, 63, 95, 0.3);
+    border-bottom: 2px solid #2a3f5f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.right-sidebar-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #4fc3f7;
+}
+
+.close-btn-right {
+    background: transparent;
+    border: none;
+    color: #ff5252;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: all 0.3s;
+}
+
+.close-btn-right:hover {
+    color: #ff1744;
+    transform: rotate(90deg);
+}
+
+.nav-links {
+    padding: 20px;
+}
+
+.nav-link-item {
+    margin-bottom: 12px;
+}
+
+.nav-link-item a {
+    display: block;
+    padding: 15px;
+    background: rgba(42, 63, 95, 0.3);
+    border: 1px solid #2a3f5f;
+    border-radius: 8px;
+    color: #4fc3f7;
+    text-decoration: none;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link-item a:hover {
+    background: rgba(79, 195, 247, 0.1);
+    border-color: #4fc3f7;
+    transform: translateX(-5px);
+    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.2);
+}
+
+.nav-link-item a.active {
+    background: rgba(79, 195, 247, 0.2);
+    border-color: #4fc3f7;
+}
+
+.nav-link-title {
+    font-weight: 600;
+    font-size: 16px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.nav-link-desc {
+    font-size: 12px;
+    color: #9e9e9e;
+    line-height: 1.4;
+}
+
+.sidebar-header {
+    padding: 20px;
+    background: rgba(42, 63, 95, 0.3);
+    border-bottom: 2px solid #2a3f5f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #4fc3f7;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: #ff5252;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: all 0.3s;
+}
+
+.close-btn:hover {
+    color: #ff1744;
+    transform: rotate(90deg);
+}
+
+.sidebar-nav {
+    padding: 20px;
+}
+
+.nav-section {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(79, 195, 247, 0.1);
+}
+
+.section-title {
+    color: #4fc3f7;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #b0b0b0;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #2a3f5f;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4fc3f7;
+    box-shadow: 0 0 10px rgba(79, 195, 247, 0.2);
+}
+
+.form-group small {
+    font-size: 11px;
+    color: #757575;
+}
+
+.form-group small a {
+    color: #4fc3f7;
+}
+
+.btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.btn-mode {
+    background: rgba(255,255,255,0.05);
+    color: #e0e0e0;
+    border: 1px solid #2a3f5f;
+}
+
+.btn-mode:hover {
+    background: rgba(79, 195, 247, 0.1);
+    border-color: #4fc3f7;
+}
+
+.btn-mode.active {
+    background: #4fc3f7;
+    color: #0a0e27;
+    border-color: #4fc3f7;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+}
+
+.btn-block {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 0;
+    margin-right: 0;
+    transition: margin 0.3s ease;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.main-content.left-open {
+    margin-left: 350px;
+}
+
+.main-content.right-open {
+    margin-right: 320px;
+}
+
+.top-bar {
+    background: linear-gradient(90deg, #1a1f3a 0%, #2a3f5f 100%);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border-bottom: 2px solid #2a3f5f;
+}
+
+.top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.menu-btn {
+    background: rgba(79, 195, 247, 0.1);
+    border: 1px solid #4fc3f7;
+    color: #4fc3f7;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+
+.menu-btn:hover {
+    background: #4fc3f7;
+    color: #0a0e27;
+}
+
+.dashboard-title {
+    margin: 0;
+    font-size: 22px;
+    color: #4fc3f7;
+}
+
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #757575;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.connected {
+    background: #4caf50;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.balance-display {
+    background: rgba(76, 175, 80, 0.1);
+    padding: 8px 15px;
+    border-radius: 6px;
+    border: 1px solid #4caf50;
+}
+
+.balance-amount {
+    color: #4caf50;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.server-time {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    color: #4fc3f7;
+}
+
+.stats-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #1a1f3a 0%, #2a3f5f 100%);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #2a3f5f;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(79, 195, 247, 0.2);
+}
+
+.stat-icon {
+    font-size: 36px;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #9e9e9e;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #4fc3f7;
+}
+
+.stat-success .stat-value { color: #4caf50; }
+.stat-danger .stat-value { color: #f44336; }
+.stat-info .stat-value { color: #2196f3; }
+.stat-warning .stat-value { color: #ff9800; }
+
+.chart-section {
+    margin: 30px;
+    background: linear-gradient(135deg, #1a1f3a 0%, #2a3f5f 100%);
+    border-radius: 12px;
+    border: 1px solid #2a3f5f;
+    overflow: hidden;
+}
+
+.chart-header {
+    padding: 20px;
+    background: rgba(42, 63, 95, 0.3);
+    border-bottom: 2px solid #2a3f5f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-header h2 {
+    margin: 0;
+    color: #4fc3f7;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.chart-select {
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #2a3f5f;
+    border-radius: 6px;
+    color: #e0e0e0;
+    cursor: pointer;
+}
+
+.btn-sm {
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+#chartContainer {
+    height: 500px;
+    background: #0a0e27;
+}
+
+.log-section {
+    margin: 30px;
+    background: linear-gradient(135deg, #1a1f3a 0%, #2a3f5f 100%);
+    border-radius: 12px;
+    border: 1px solid #2a3f5f;
+    overflow: hidden;
+}
+
+.log-header {
+    padding: 20px;
+    background: rgba(42, 63, 95, 0.3);
+    border-bottom: 2px solid #2a3f5f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-header h3 {
+    margin: 0;
+    color: #4fc3f7;
+}
+
+.log-container {
+    padding: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.log-empty {
+    text-align: center;
+    color: #757575;
+    padding: 40px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1f3a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4fc3f7;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #2196f3;
+}
+</style>
+</head>
+<body>
+    <!-- Sidebar Trigger Zones -->
+    <div id="sidebarTriggerLeft"></div>
+    <div id="sidebarTriggerRight"></div>
+
+    <!-- Panel A: Left Sidebar (Trading Panel) -->
+    <aside id="panelA" class="sidebar">
+        <div class="sidebar-header">
+            <h2>📊 Trading Panel</h2>
+            <button id="closeSidebar" class="close-btn">✕</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Market Selection -->
+            <div class="nav-section">
+                <h3 class="section-title">Market Selection</h3>
+                <div class="form-group">
+                    <label for="assetSelect">Asset</label>
+                    <select id="assetSelect" class="form-control">
+                        <optgroup label="Volatility Indices">
+                            <option value="R_10">Volatility 10 Index</option>
+                            <option value="R_25">Volatility 25 Index</option>
+                            <option value="R_50">Volatility 50 Index</option>
+                            <option value="R_75">Volatility 75 Index</option>
+                            <option value="R_100">Volatility 100 Index</option>
+                        </optgroup>
+                        <optgroup label="Forex">
+                            <option value="frxEURUSD">EUR/USD</option>
+                            <option value="frxGBPUSD">GBP/USD</option>
+                            <option value="frxUSDJPY">USD/JPY</option>
+                            <option value="frxAUDUSD">AUD/USD</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Trading Mode -->
+            <div class="nav-section">
+                <h3 class="section-title">Trading Mode</h3>
+                <div class="btn-group">
+                    <button class="btn btn-mode" data-mode="idle">⏸️ Idle</button>
+                    <button class="btn btn-mode active" data-mode="auto">🤖 Auto</button>
+                    <button class="btn btn-mode" data-mode="call">📈 Call</button>
+                    <button class="btn btn-mode" data-mode="put">📉 Put</button>
+                </div>
+            </div>
+
+            <!-- Money Management -->
+            <div class="nav-section">
+                <h3 class="section-title">Money Management</h3>
+                <div class="form-group">
+                    <label for="moneyMode">Strategy</label>
+                    <select id="moneyMode" class="form-control">
+                        <option value="fix">Fixed Stake</option>
+                        <option value="martingale">Martingale</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="initialStake">Initial Stake ($)</label>
+                    <input type="number" id="initialStake" class="form-control" value="1" min="0.35" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="targetMoney">Target Profit ($)</label>
+                    <input type="number" id="targetMoney" class="form-control" value="100" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="numWinTarget">Win Target (Martingale)</label>
+                    <input type="number" id="numWinTarget" class="form-control" value="10" min="1">
+                </div>
+            </div>
+
+            <!-- Trade Duration -->
+            <div class="nav-section">
+                <h3 class="section-title">Trade Duration</h3>
+                <div class="form-group">
+                    <label for="duration">Duration</label>
+                    <input type="number" id="duration" class="form-control" value="55" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="durationUnit">Unit</label>
+                    <select id="durationUnit" class="form-control">
+                        <option value="s" selected>Seconds</option>
+                        <option value="m">Minutes</option>
+                        <option value="t">Ticks</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- API Configuration -->
+            <div class="nav-section">
+                <h3 class="section-title">API Configuration</h3>
+                <div class="form-group">
+                    <label for="appId">App ID</label>
+                    <input type="text" id="appId" class="form-control" value="1089" placeholder="Enter App ID">
+                </div>
+                <div class="form-group">
+                    <label for="apiToken">API Token</label>
+                    <input type="password" id="apiToken" class="form-control" placeholder="Enter API Token">
+                    <small>Get token from: <a href="https://app.deriv.com/account/api-token" target="_blank">Deriv API</a></small>
+                </div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="nav-section">
+                <button id="connectBtn" class="btn btn-primary btn-block">🚀 Start Trading</button>
+                <button id="stopBtn" class="btn btn-danger btn-block" disabled>🛑 Stop Trading</button>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Right Sidebar (Navigation Links) -->
+    <aside id="rightPanel" class="right-sidebar">
+        <div class="right-sidebar-header">
+            <h2>🔗 Quick Links</h2>
+            <button id="closeRightSidebar" class="close-btn-right">✕</button>
+        </div>
+
+        <div class="nav-links">
+            <div class="nav-link-item">
+                <a class="active" href="https://thepapers.in/newLab/index.php" target="_blank">
+                    <span class="nav-link-title">📊 วิเคราะห์แยก-1</span>
+                    <span class="nav-link-desc">macd,rsi,bb กราฟแสดง Trend ได้ดี</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/webassemply/indicatormath/lab2.php" target="_blank">
+                    <span class="nav-link-title">🔬 วิเคราะห์แยก-2</span>
+                    <span class="nav-link-desc">วิเคราะห์ด้วยสูตรคณิตศาสตร์ขั้นสูง</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/countCandle.php" target="_blank">
+                    <span class="nav-link-title">🕯️ Count Candle</span>
+                    <span class="nav-link-desc">นับแท่งเทียนตามรูปแบบที่กำหนด</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://lovetoshopmall.com/Ipad2/viewgraphType2B.php" target="_blank">
+                    <span class="nav-link-title">📈 รวม Chart-1</span>
+                    <span class="nav-link-desc">แสดงกราฟรวมแบบที่ 1 (รายวัน)</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://lovetoshopmall.com/Ipad2/viewgraphType2B.php?listNo=2" target="_blank">
+                    <span class="nav-link-title">📊 รวม Chart-2</span>
+                    <span class="nav-link-desc">แสดงกราฟรวมแบบที่ 2 (รายสัปดาห์)</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/choppy/" target="_blank">
+                    <span class="nav-link-title">🌊 Choppy-รวม</span>
+                    <span class="nav-link-desc">รวมข้อมูลตลาดที่มีความผันผวนสูง</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/phpAllPredictAPI/choppyIndyV2.php" target="_blank">
+                    <span class="nav-link-title">⚡ Choppy</span>
+                    <span class="nav-link-desc">ตัวบ่งชี้ Choppy Market เวอร์ชัน 2</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://thepapers.in/phpAllPredictAPI/pageLab.php" target="_blank">
+                    <span class="nav-link-title">🧪 LabPage</span>
+                    <span class="nav-link-desc">ห้องทดลองตัวบ่งชี้ใหม่ ๆ</span>
+                </a>
+            </div>
+            <div class="nav-link-item">
+                <a href="https://lovetoshopmall.com/Ipad2/listAllTrade.php" target="_blank">
+                    <span class="nav-link-title">📋 TrackTrade</span>
+                    <span class="nav-link-desc">ติดตามผลการเทรดทั้งหมดแบบเรียลไทม์</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Panel B: Main Trading Area -->
+    <main id="panelB" class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button id="menuToggle" class="menu-btn">☰</button>
+                <h1 class="dashboard-title">Deriv Trading Dashboard</h1>
+            </div>
+            
+            <div class="top-bar-right">
+                <div class="status-indicator">
+                    <span class="status-dot" id="connectionStatus"></span>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <div class="balance-display">
+                    <span class="balance-label">Balance:</span>
+                    <span class="balance-amount" id="balanceAmount">$0.00</span>
+                </div>
+                <div class="server-time">
+                    <span id="serverTime">--:--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Trading Stats -->
+        <section class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Trades</div>
+                    <div class="stat-value" id="totalTrades">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-success">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">Wins</div>
+                    <div class="stat-value" id="totalWins">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-danger">
+                <div class="stat-icon">❌</div>
+                <div class="stat-content">
+                    <div class="stat-label">Losses</div>
+                    <div class="stat-value" id="totalLosses">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-info">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-label">Profit/Loss</div>
+                    <div class="stat-value" id="profitLoss">$0.00</div>
+                </div>
+            </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-content">
+                    <div class="stat-label">Win Streak</div>
+                    <div class="stat-value" id="winStreak">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Container -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h2 id="chartTitle">Market Chart</h2>
+                <div class="chart-controls">
+                    <select id="chartInterval" class="chart-select">
+                        <option value="1">1 Min</option>
+                        <option value="5">5 Min</option>
+                        <option value="15">15 Min</option>
+                        <option value="60">1 Hour</option>
+                    </select>
+                    <button class="btn btn-sm" id="fullscreenBtn">⛶ Fullscreen</button>
+                </div>
+            </div>
+            <div id="chartContainer"></div>
+        </section>
+
+        <!-- Trade Log -->
+        <section class="log-section">
+            <div class="log-header">
+                <h3>📋 Trade Log</h3>
+                <button class="btn btn-sm" id="clearLogBtn">🗑️ Clear</button>
+            </div>
+            <div class="log-container" id="tradeLog">
+                <div class="log-empty">No trades yet. Start trading to see logs here.</div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Left Sidebar Toggle
+        const sidebarTriggerLeft = document.getElementById('sidebarTriggerLeft');
+        const panelA = document.getElementById('panelA');
+        const panelB = document.getElementById('panelB');
+        const closeSidebar = document.getElementById('closeSidebar');
+        const menuToggle = document.getElementById('menuToggle');
+
+        // Right Sidebar Toggle
+        const sidebarTriggerRight = document.getElementById('sidebarTriggerRight');
+        const rightPanel = document.getElementById('rightPanel');
+        const closeRightSidebar = document.getElementById('closeRightSidebar');
+
+        // Left Sidebar - Show on hover
+        sidebarTriggerLeft.addEventListener('mouseenter', () => {
+            panelA.classList.add('active');
+            panelB.classList.add('left-open');
+        });
+
+        // Left Sidebar - Close button
+        closeSidebar.addEventListener('click', () => {
+            panelA.classList.remove('active');
+            panelB.classList.remove('left-open');
+        });
+
+        // Left Sidebar - Menu toggle button
+        menuToggle.addEventListener('click', () => {
+            panelA.classList.toggle('active');
+            panelB.classList.toggle('left-open');
+        });
+
+        // Right Sidebar - Show on hover
+        sidebarTriggerRight.addEventListener('mouseenter', () => {
+            rightPanel.classList.add('active');
+            panelB.classList.add('right-open');
+        });
+
+        // Right Sidebar - Close button
+        closeRightSidebar.addEventListener('click', () => {
+            rightPanel.classList.remove('active');
+            panelB.classList.remove('right-open');
+        });
+
+        // Trading Mode Buttons
+        const modeButtons = document.querySelectorAll('.btn-mode');
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Initialize Chart
+        const chartContainer = document.getElementById('chartContainer');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: 500,
+            layout: {
+                background: { color: '#0a0e27' },
+                textColor: '#d1d4dc',
+            },
+            grid: {
+                vertLines: { color: '#1a1f3a' },
+                horzLines: { color: '#1a1f3a' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: '#2a3f5f',
+            },
+            timeScale: {
+                borderColor: '#2a3f5f',
+                timeVisible: true,
+                secondsVisible: false,
+            },
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#4caf50',
+            downColor: '#f44336',
+            borderUpColor: '#4caf50',
+            borderDownColor: '#f44336',
+            wickUpColor: '#4caf50',
+            wickDownColor: '#f44336',
+        });
+
+        // Sample data
+        const sampleData = [
+            { time: '2024-01-01', open: 100, high: 105, low: 95, close: 102 },
+            { time: '2024-01-02', open: 102, high: 108, low: 101, close: 106 },
+            { time: '2024-01-03', open: 106, high: 110, low: 104, close: 107 },
+            { time: '2024-01-04', open: 107, high: 112, low: 105, close: 109 },
+            { time: '2024-01-05', open: 109, high: 115, low: 108, close: 113 },
+        ];
+        candleSeries.setData(sampleData);
+
+        // Resize chart on window resize
+        window.addEventListener('resize', () => {
+            chart.applyOptions({ 
+                width: chartContainer.clientWidth 
+            });
+        });
+
+        // Update server time
+        function updateServerTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('serverTime').textContent = timeString;
+        }
+        setInterval(updateServerTime, 1000);
+        updateServerTime();
+
+        // Connect/Stop buttons
+        const connectBtn = document.getElementById('connectBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('statusText');
+
+        connectBtn.addEventListener('click', () => {
+            connectBtn.disabled = true;
+            stopBtn.disabled = false;
+            connectionStatus.classList.add('connected');
+            statusText.textContent = 'Connected';
+        });
+
+        stopBtn.addEventListener('click', () => {
+            connectBtn.disabled = false;
+            stopBtn.disabled = true;
+            connectionStatus.classList.remove('connected');
+            statusText.textContent = 'Disconnected';
+        });
+
+        // Clear log button
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            document.getElementById('tradeLog').innerHTML = '<div class="log-empty">No trades yet. Start trading to see logs here.</div>';
+        });
+
+        // Fullscreen button
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    </script>
+</body>
+</html>

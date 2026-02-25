@@ -1,0 +1,219 @@
+ออกแบบ  dashboard คล้ายๆ กับ ของ admintle จุดประสงค์เพื่อใช้ในการเทรด Deriv
+และใช้  lightweightchart 3.8 
+โดยจะให้ พื้นที่ ทำงาน แบ่งเป็น panel-a กับ panel-b ซึ่งมีขนาด width รวมกัน เท่ากับ sceenwidth
+โดย panel-a จะเป็น เมนูให้เลือก
+จะ ถูกซ่อนเอา ไว้ใน ด้านซ้าย และจะออกมาแสดงก็ต่อเมื่อ เอาเมาส์ไปชิดด้านซ้าย เมื่อเมนูด้านซ้าย ออกมาก็ให้ หด width ของ panel-b
+และให้ท่าน เสริมเมนูที่คิดว่า ควรจะมี dashboard นี้จะถูกนำไปใช้ กับ rust+axum
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deriv Trading Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <!-- Sidebar Trigger Zone -->
+    <div id="sidebarTrigger"></div>
+
+    <!-- Panel A: Sidebar Menu -->
+    <aside id="panelA" class="sidebar">
+        <div class="sidebar-header">
+            <h2>📊 Trading Panel</h2>
+            <button id="closeSidebar" class="close-btn">✕</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Market Selection -->
+            <div class="nav-section">
+                <h3 class="section-title">Market Selection</h3>
+                <div class="form-group">
+                    <label for="assetSelect">Asset</label>
+                    <select id="assetSelect" class="form-control">
+                        <optgroup label="Volatility Indices">
+                            <option value="R_10">Volatility 10 Index</option>
+                            <option value="R_25">Volatility 25 Index</option>
+                            <option value="R_50">Volatility 50 Index</option>
+                            <option value="R_75">Volatility 75 Index</option>
+                            <option value="R_100">Volatility 100 Index</option>
+                        </optgroup>
+                        <optgroup label="Forex">
+                            <option value="frxEURUSD">EUR/USD</option>
+                            <option value="frxGBPUSD">GBP/USD</option>
+                            <option value="frxUSDJPY">USD/JPY</option>
+                            <option value="frxAUDUSD">AUD/USD</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Trading Mode -->
+            <div class="nav-section">
+                <h3 class="section-title">Trading Mode</h3>
+                <div class="btn-group">
+                    <button class="btn btn-mode" data-mode="idle">⏸️ Idle</button>
+                    <button class="btn btn-mode active" data-mode="auto">🤖 Auto</button>
+                    <button class="btn btn-mode" data-mode="call">📈 Call Only</button>
+                    <button class="btn btn-mode" data-mode="put">📉 Put Only</button>
+                </div>
+            </div>
+
+            <!-- Money Management -->
+            <div class="nav-section">
+                <h3 class="section-title">Money Management</h3>
+                <div class="form-group">
+                    <label for="moneyMode">Strategy</label>
+                    <select id="moneyMode" class="form-control">
+                        <option value="fix">Fixed Stake</option>
+                        <option value="martingale">Martingale</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="initialStake">Initial Stake ($)</label>
+                    <input type="number" id="initialStake" class="form-control" value="1" min="0.35" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="targetMoney">Target Profit ($)</label>
+                    <input type="number" id="targetMoney" class="form-control" value="100" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="numWinTarget">Win Target (Martingale)</label>
+                    <input type="number" id="numWinTarget" class="form-control" value="10" min="1">
+                </div>
+            </div>
+
+            <!-- Trade Duration -->
+            <div class="nav-section">
+                <h3 class="section-title">Trade Duration</h3>
+                <div class="form-group">
+                    <label for="duration">Duration</label>
+                    <input type="number" id="duration" class="form-control" value="55" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="durationUnit">Unit</label>
+                    <select id="durationUnit" class="form-control">
+                        <option value="s" selected>Seconds</option>
+                        <option value="m">Minutes</option>
+                        <option value="t">Ticks</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- API Configuration -->
+            <div class="nav-section">
+                <h3 class="section-title">API Configuration</h3>
+                <div class="form-group">
+                    <label for="appId">App ID</label>
+                    <input type="text" id="appId" class="form-control" value="1089" placeholder="Enter App ID">
+                </div>
+                <div class="form-group">
+                    <label for="apiToken">API Token</label>
+                    <input type="password" id="apiToken" class="form-control" placeholder="Enter API Token">
+                    <small>Get token from: <a href="https://app.deriv.com/account/api-token" target="_blank">Deriv API</a></small>
+                </div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="nav-section">
+                <button id="connectBtn" class="btn btn-primary btn-block">🚀 Start Trading</button>
+                <button id="stopBtn" class="btn btn-danger btn-block" disabled>🛑 Stop Trading</button>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Panel B: Main Trading Area -->
+    <main id="panelB" class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button id="menuToggle" class="menu-btn">☰</button>
+                <h1 class="dashboard-title">Deriv Trading Dashboard</h1>
+            </div>
+            <div class="top-bar-right">
+                <div class="status-indicator">
+                    <span class="status-dot" id="connectionStatus"></span>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <div class="balance-display">
+                    <span class="balance-label">Balance:</span>
+                    <span class="balance-amount" id="balanceAmount">$0.00</span>
+                </div>
+                <div class="server-time">
+                    <span id="serverTime">--:--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Trading Stats -->
+        <section class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Trades</div>
+                    <div class="stat-value" id="totalTrades">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-success">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">Wins</div>
+                    <div class="stat-value" id="totalWins">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-danger">
+                <div class="stat-icon">❌</div>
+                <div class="stat-content">
+                    <div class="stat-label">Losses</div>
+                    <div class="stat-value" id="totalLosses">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-info">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-label">Profit/Loss</div>
+                    <div class="stat-value" id="profitLoss">$0.00</div>
+                </div>
+            </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-content">
+                    <div class="stat-label">Win Streak</div>
+                    <div class="stat-value" id="winStreak">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart Container -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <h2 id="chartTitle">Market Chart</h2>
+                <div class="chart-controls">
+                    <select id="chartInterval" class="chart-select">
+                        <option value="1">1 Min</option>
+                        <option value="5">5 Min</option>
+                        <option value="15">15 Min</option>
+                        <option value="60">1 Hour</option>
+                    </select>
+                    <button class="btn btn-sm" id="fullscreenBtn">⛶ Fullscreen</button>
+                </div>
+            </div>
+            <div id="chartContainer"></div>
+        </section>
+
+        <!-- Trade Log -->
+        <section class="log-section">
+            <div class="log-header">
+                <h3>📋 Trade Log</h3>
+                <button class="btn btn-sm" id="clearLogBtn">🗑️ Clear</button>
+            </div>
+            <div class="log-container" id="tradeLog">
+                <div class="log-empty">No trades yet. Start trading to see logs here.</div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,521 @@
+/* =======================================
+ * 1. Global & Variables
+ * ======================================= */
+:root {
+    --color-primary: #007bff;     /* Blue for buttons/accents */
+    --color-success: #28a745;     /* Green for wins/success */
+    --color-danger: #dc3545;      /* Red for losses/danger */
+    --color-warning: #ffc107;     /* Yellow for warnings/streaks */
+    --color-info: #17a2b8;        /* Cyan for info/profit */
+    
+    --bg-dark: #1e1e2d;           /* Main background (Panel B) */
+    --bg-panel: #2a2a3b;          /* Panel A background (Sidebar) */
+    --bg-card: #252535;           /* Card/Section background */
+    --text-light: #c0c0c0;        /* Default text color */
+    --text-header: #ffffff;       /* Header text color */
+
+    --sidebar-width-visible: 300px; /* ความกว้างเมื่อแสดง */
+    --sidebar-trigger-width: 10px;  /* ความกว้างของพื้นที่ Trigger */
+    --transition-speed: 0.3s;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* =======================================
+ * 2. Layout Structure (Panel A & B)
+ * ======================================= */
+
+/* Sidebar Trigger Zone (Hidden area on the left edge) */
+#sidebarTrigger {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-trigger-width);
+    z-index: 1000;
+    cursor: pointer;
+}
+
+/* Panel A: Sidebar (Menu) */
+#panelA {
+    width: var(--sidebar-width-visible);
+    position: fixed;
+    top: 0;
+    left: calc(var(--sidebar-width-visible) * -1); /* ซ่อนเริ่มต้น */
+    height: 100vh;
+    background-color: var(--bg-panel);
+    color: var(--text-light);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 1010; /* ต้องอยู่เหนือก่อน Panel B */
+    transition: left var(--transition-speed);
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+/* Panel B: Main Content */
+#panelB {
+    flex-grow: 1;
+    margin-left: 0; /* เริ่มต้นด้วย margin เป็น 0 */
+    transition: margin-left var(--transition-speed);
+    width: 100%;
+}
+
+/* ********** CLASS TOGGLE BY JS ********** */
+
+/* เมื่อ Sidebar เปิด */
+.sidebar-open #panelA {
+    left: 0; /* เลื่อน Sidebar ออกมา */
+}
+
+/* Note: เนื่องจากเราใช้ position: fixed กับ sidebar การใช้ margin-left กับ Panel B จึงไม่จำเป็นต้องใช้ 
+   หากต้องการให้ Panel B หดขนาด ให้ใช้ margin-left ในกรณีที่ Sidebar เป็น non-fixed */
+/* .sidebar-open #panelB {
+    margin-left: var(--sidebar-width-visible); 
+} */
+
+
+/* =======================================
+ * 3. Sidebar (Panel A) Styling
+ * ======================================= */
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #35354a; /* Header background in sidebar */
+    border-bottom: 1px solid #3c3c50;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-header);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.sidebar-nav {
+    padding: 20px;
+}
+
+.nav-section {
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: var(--bg-card);
+    border-radius: 6px;
+}
+
+.section-title {
+    font-size: 1rem;
+    color: var(--color-primary);
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #3c3c50;
+}
+
+/* Form Controls */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #4a4a60;
+    border-radius: 4px;
+    background-color: #3c3c50;
+    color: var(--text-light);
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+small {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.75rem;
+    color: #999;
+}
+
+small a {
+    color: var(--color-info);
+    text-decoration: none;
+}
+
+/* Button Group */
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s, opacity 0.2s;
+    font-size: 0.9rem;
+}
+
+.btn-mode {
+    flex-grow: 1;
+    background-color: #4a4a60;
+    color: var(--text-light);
+}
+
+.btn-mode.active,
+.btn-mode:hover {
+    background-color: var(--color-primary);
+    color: var(--text-header);
+}
+
+.btn-primary {
+    background-color: var(--color-success); /* Use success for start */
+    color: var(--text-header);
+}
+
+.btn-danger {
+    background-color: var(--color-danger);
+    color: var(--text-header);
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =======================================
+ * 4. Main Content (Panel B) Styling
+ * ======================================= */
+
+#panelB {
+    padding: 0 20px 20px 20px;
+}
+
+/* Top Bar */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #3c3c50;
+}
+
+.top-bar-left, .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.dashboard-title {
+    font-size: 1.5rem;
+    color: var(--text-header);
+    margin: 0;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--color-danger); /* Default: Disconnected */
+    transition: background-color 0.3s;
+}
+
+/* JS Class for connection status */
+.connected {
+    background-color: var(--color-success) !important;
+}
+
+.balance-display {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-light);
+}
+
+.balance-amount {
+    color: var(--color-warning);
+}
+
+.server-time {
+    font-size: 0.9rem;
+    color: #999;
+}
+
+
+/* Trading Stats Cards */
+.stats-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--bg-card);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #999;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-header);
+}
+
+.stat-success .stat-value { color: var(--color-success); }
+.stat-danger .stat-value { color: var(--color-danger); }
+.stat-info .stat-value { color: var(--color-info); }
+.stat-warning .stat-value { color: var(--color-warning); }
+
+
+/* Chart Section */
+.chart-section {
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#chartTitle {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-header);
+}
+
+.chart-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.chart-select {
+    padding: 5px 10px;
+    border: 1px solid #4a4a60;
+    border-radius: 4px;
+    background-color: #3c3c50;
+    color: var(--text-light);
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    background-color: #4a4a60;
+    color: var(--text-light);
+}
+
+#chartContainer {
+    height: 50vh; /* กำหนดความสูงสำหรับ Lightweight Chart */
+    min-height: 300px;
+    width: 100%;
+}
+
+
+/* Trade Log Section */
+.log-section {
+    background-color: var(--bg-card);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.log-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-header);
+}
+
+.log-container {
+    height: 200px;
+    overflow-y: auto;
+    background-color: #1e1e2d;
+    border: 1px solid #3c3c50;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.log-empty {
+    text-align: center;
+    color: #777;
+    padding: 50px 0;
+}
+
+/* Log Item Styles (ถ้ามีการเพิ่มด้วย JS) */
+.log-item-win { color: var(--color-success); }
+.log-item-loss { color: var(--color-danger); }
+.log-item-info { color: var(--color-info); }
+
+
+/* ตกแต่งแถบเมนู */
+        nav {
+            background-color: #333; /* สีพื้นหลังแถบเมนู */
+        }
+
+        nav ul {
+            list-style-type: none; /* เอาจุดหน้าลิสต์ออก */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex; /* ใช้ Flexbox เพื่อจัดแนวนอน */
+            justify-content: center; /* จัดให้อยู่กึ่งกลางหน้าจอ */
+        }
+
+        nav li {
+            float: left; /* สำหรับบราวเซอร์รุ่นเก่า */
+        }
+
+        nav li a {
+            display: block;
+            color: white; /* สีตัวอักษร */
+            text-align: center;
+            padding: 14px 20px; /* ระยะห่างในเมนู */
+            text-decoration: none; /* เอาเส้นใต้户ออก */
+            transition: 0.3s; /* ใส่ลูกเล่นเวลาเอาเมาส์ไปวาง */
+        }
+
+        /* เมื่อเอาเมาส์ไปวาง (Hover) */
+        nav li a:hover {
+            background-color: #555;
+            color: #ffcc00;
+        }
+
+        /* เมนูที่กำลังใช้งานอยู่ (Active) */
+        .active {
+            background-color: #04AA6D;
+        }
+
+
+/* Tooltip Container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip Text (ซ่อนไว้ก่อน) */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* โชว์ด้านบนเมนู */
+    left: 50%;
+    margin-left: -100px; /* จัดกึ่งกลาง */
+    opacity: 0;
+    transition: opacity 0.3s, visibility 0.3s;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* ลูกศรชี้ลง */
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+/* เมื่อ hover แสดง tooltip */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ปรับให้ responsive (มือถือ) */
+@media (max-width: 768px) {
+    .tooltip .tooltiptext {
+        width: 160px;
+        margin-left: -80px;
+        font-size: 13px;
+    }
+}
