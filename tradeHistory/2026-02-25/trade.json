@@ -1,0 +1,46 @@
+{
+  "DayTrade": {
+    "LotNoCurrent": 4,
+    "DayTrade": "2026-02-25",
+    "StartTradeOfDay": "07:16:41",
+    "LastTradeOfDay": "07:17:57",
+    "TotalTradeOnThisDay": 2,
+    "TotalProfit": 1.9,
+    "StatusofTrade": "กำลังเทรดอยู่",
+    "CurrentProfit": 0.95,
+    "DayTradeList": [
+      {
+        "No": 1,
+        "ContractID": "307465652688",
+        "Symbol": "1HZ50V",
+        "StatusCode": "6",
+        "Type": "PUT",
+        "BuyPrice": 1.0,
+        "Payout": 1.95,
+        "BuyTime": "1771978601",
+        "Expiry": "1771978656",
+        "Remaining": "00:00",
+        "MinProfit": -1.0,
+        "MaxProfit": 0.95,
+        "Profit": 0.95,
+        "Action": "WIN ✅"
+      },
+      {
+        "No": 2,
+        "ContractID": "307465666048",
+        "Symbol": "1HZ50V",
+        "StatusCode": "6",
+        "Type": "PUT",
+        "BuyPrice": 1.0,
+        "Payout": 1.95,
+        "BuyTime": "1771978620",
+        "Expiry": "1771978675",
+        "Remaining": "00:00",
+        "MinProfit": -1.0,
+        "MaxProfit": 0.95,
+        "Profit": 0.95,
+        "Action": "WIN ✅"
+      }
+    ]
+  }
+}

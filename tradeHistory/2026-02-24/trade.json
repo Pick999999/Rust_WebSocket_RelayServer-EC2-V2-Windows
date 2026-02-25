@@ -1,0 +1,78 @@
+{
+  "DayTrade": {
+    "LotNoCurrent": 4,
+    "DayTrade": "2026-02-24",
+    "StartTradeOfDay": "09:22:38",
+    "LastTradeOfDay": "09:23:58",
+    "TotalTradeOnThisDay": 4,
+    "TotalProfit": 3.8,
+    "StatusofTrade": "สิ้นสุดการเทรด",
+    "CurrentProfit": 0.95,
+    "DayTradeList": [
+      {
+        "No": 1,
+        "ContractID": "307378825108",
+        "Symbol": "1HZ50V",
+        "StatusCode": "32",
+        "Type": "PUT",
+        "BuyPrice": 1.0,
+        "Payout": 1.95,
+        "BuyTime": "1771899757",
+        "Expiry": "1771899812",
+        "Remaining": "00:00",
+        "MinProfit": -1.0,
+        "MaxProfit": 0.95,
+        "Profit": 0.95,
+        "Action": "WIN ✅"
+      },
+      {
+        "No": 2,
+        "ContractID": "307378825248",
+        "Symbol": "1HZ100V",
+        "StatusCode": "76",
+        "Type": "CALL",
+        "BuyPrice": 1.0,
+        "Payout": 1.95,
+        "BuyTime": "1771899758",
+        "Expiry": "1771899813",
+        "Remaining": "00:00",
+        "MinProfit": -1.0,
+        "MaxProfit": 0.95,
+        "Profit": 0.95,
+        "Action": "WIN ✅"
+      },
+      {
+        "No": 3,
+        "ContractID": "307378841168",
+        "Symbol": "1HZ50V",
+        "StatusCode": "32",
+        "Type": "PUT",
+        "BuyPrice": 1.0,
+        "Payout": 1.95,
+        "BuyTime": "1771899780",
+        "Expiry": "1771899835",
+        "Remaining": "00:00",
+        "MinProfit": -1.0,
+        "MaxProfit": 0.95,
+        "Profit": 0.95,
+        "Action": "WIN ✅"
+      },
+      {
+        "No": 4,
+        "ContractID": "307378841488",
+        "Symbol": "1HZ100V",
+        "StatusCode": "76",
+        "Type": "CALL",
+        "BuyPrice": 1.0,
+        "Payout": 1.95,
+        "BuyTime": "1771899781",
+        "Expiry": "1771899836",
+        "Remaining": "00:00",
+        "MinProfit": -1.0,
+        "MaxProfit": 0.95,
+        "Profit": 0.95,
+        "Action": "WIN ✅"
+      }
+    ]
+  }
+}
