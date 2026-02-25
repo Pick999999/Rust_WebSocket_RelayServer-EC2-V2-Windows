@@ -1,0 +1,26 @@
+```
+เมื่อฉันใช้ indicator_math ทำการหา ema ออกมาได้ 2 เส้นแล้วคือ emaShort และ emaLong 
+ให้นำมาสร้าง ข้อมูล วิเคราะห์ ดังนี้ โดยใช้ Rust 
+
+ { 
+  timeCandle: เวลาของแท่งเทียน ,
+  colorCandle : สีของแท่งเทียน มี Red หรือ Green หรือ Eaual,
+  emaShortValue : ค่า emaShort,
+  emaShortSlopeValue : ค่า  slopeValue ของ emaShort,
+  emaShortSlopeDirection : ค่า ทิศทางของ smaShort ว่า Up หรือ Down หรือ Pararell,
+  isEmaShortTurnType : ที่จุดนี้เป็น จุด TurnUp หรืิอ TurnDown ,
+  shortDistanceFromLastTurn : ระยะห่างหรือจำนวนแท่งเทียนนับจากจุด TurnType ล่าสุด,
+  PositionShort : ตำแหน่งของ emaShort ว่า อยู่เหนือแท่งเทียน หรือ บนตำแหน่งไหนของแท่งเทียน หรือ ใต้แท่งเทียน ,
+  emaLongValue : ค่า emaLong,
+  emaLongSlopeValue : ค่า  slopeValue ของ emaLong,
+  emaLongSlopeDirection : ค่า ทิศทางของ smaLong ว่า Up หรือ Down หรือ Pararell,
+  isEmaLongTurnType : ที่จุดนี้เป็น จุด TurnUp หรืิอ TurnDown ,
+  LongDistanceFromLastTurn : ระยะห่างหรือจำนวนแท่งเทียนนับจากจุด TurnType ล่าสุด,
+  PositionLong : ตำแหน่งของ emaLong ว่า อยู่เหนือแท่งเทียน หรือ บนตำแหน่งไหนของแท่งเทียน หรือ ใต้แท่งเทียน ,
+  isEMACutType : เป็นจุดตัดระหว่าง emaShort กับ emaLong ใช่หรือไม่ ถ้าเป็น ตัดแบบไหน,
+  distanceFormCutPoint: ระยะห่าง หรือ จำนวนแท่งเทียนนับจากจุด isEMACutType
+  previousColorBack1 : สีของแท่งเทียนก่อนหน้า 1 แท่ง,
+  previousColorBack3 : สีของแท่งเทียนก่อนหน้า 2 แท่ง ,
+ }
+
+

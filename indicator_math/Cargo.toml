@@ -1,0 +1,16 @@
+[package]
+name = "indicator_math"
+version = "0.8.0"
+edition = "2021"
+
+description = "A comprehensive technical analysis indicator library for Rust: SMA, EMA, WMA, HMA, EHMA, RSI, ATR, Bollinger Bands, Choppiness Index, ADX, and Full Analysis Generator."
+license = "MIT"
+repository = "https://github.com/Pick999999/indicator_math"
+documentation = "https://docs.rs/indicator_math"
+homepage = "https://github.com/Pick999999/indicator_math"
+readme = "README.md"
+keywords = ["trading", "indicators", "technical-analysis", "finance", "rust"]
+categories = ["science", "algorithms"]
+
+[dependencies]
+lazy_static = "1.4"
